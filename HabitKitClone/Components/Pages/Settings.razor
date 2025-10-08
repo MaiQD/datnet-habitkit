@@ -13,325 +13,288 @@
 
 <PageTitle>@Localizer["Settings"]</PageTitle>
 
-@if (isLoading)
-{
-    <div class="loading-container">
-        <div class="spinner"></div>
-    </div>
-}
-else
-{
-    <div class="settings-container">
-        <h1 class="mb-4">@Localizer["Settings"]</h1>
-
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <h5 class="mb-0">@Localizer["GeneralSettings"]</h5>
-            </div>
-            <div class="settings-card-body">
-                <form>
-                    <!-- Language Setting -->
-                    <div class="form-group">
-                        <label for="languageSelect" class="form-label">@Localizer["Language"]</label>
-                        <select class="form-select" id="languageSelect" @onchange="OnLanguageChanged">
-                            <option value="en" selected="@(currentCulture == "en")">English</option>
-                            <option value="vi" selected="@(currentCulture == "vi")">Tiếng Việt</option>
-                        </select>
-                    </div>
-
-                    <!-- Theme Setting -->
-                    <div class="form-group">
-                        <label for="themeSelect" class="form-label">@Localizer["Theme"]</label>
-                        <select class="form-select" id="themeSelect" @onchange="OnThemeChanged">
-                            <option value="light" selected="@(currentTheme == "light")">@Localizer["Light"]</option>
-                            <option value="dark" selected="@(currentTheme == "dark")">@Localizer["Dark"]</option>
-                        </select>
-                    </div>
-
-                    <!-- Notifications Section -->
-                    <div class="form-group">
-                        <h6>@Localizer["Notifications"]</h6>
-                        
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="emailNotifications" 
-                                   checked="@emailNotifications" @onchange="OnEmailNotificationsChanged">
-                            <label class="form-check-label" for="emailNotifications">
-                                @Localizer["EmailNotifications"]
-                            </label>
-                        </div>
-                        
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="inAppNotifications" 
-                                   checked="@inAppNotifications" @onchange="OnInAppNotificationsChanged">
-                            <label class="form-check-label" for="inAppNotifications">
-                                @Localizer["InAppNotifications"]
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Daily Reminder Time -->
-                    <div class="form-group">
-                        <label for="reminderTime" class="form-label">@Localizer["DailyReminderTime"]</label>
-                        <input type="time" class="form-control" id="reminderTime" 
-                               value="@dailyReminderTime" @onchange="OnReminderTimeChanged">
-                    </div>
-
-                    <button type="button" class="btn-primary" @onclick="OnSaveButtonClick" disabled="@isSaving">
-                        @if (isSaving)
-                        {
-                            <span class="spinner"></span>
-                        }
-                        else
-                        {
-                            <i class="fas fa-save"></i>
-                        }
-                        @Localizer["Save"]
-                    </button>
-                    
-                    @if (!string.IsNullOrEmpty(currentUserId))
-                    {
-                        <small class="text-muted d-block mt-2">User ID: @currentUserId</small>
-                    }
-                    else
-                    {
-                        <small class="text-danger d-block mt-2">Warning: User not authenticated</small>
-                    }
-                </form>
-            </div>
+<div class="page-container">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <button class="icon-button" aria-label="Back" @onclick="NavigateToHome">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-
-        <!-- Account Information -->
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <h5 class="mb-0">@Localizer["AccountInformation"]</h5>
-            </div>
-            <div class="settings-card-body">
-                <p><strong>@Localizer["Email"]:</strong> user@example.com</p>
-                <p><strong>@Localizer["MemberSince"]:</strong> @DateTime.Now.ToString("MMMM yyyy")</p>
-                <a href="/Account/Manage" class="btn-primary">
-                    <i class="fas fa-user-edit"></i>@Localizer["ManageAccount"]
-                </a>
-            </div>
+        <div class="header-center">
+            <h1 class="app-title">@Localizer["Settings"]</h1>
         </div>
+        <div class="header-right">
+            <!-- Empty for balance -->
+        </div>
+    </header>
 
-        <!-- Data Management -->
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <h5 class="mb-0">@Localizer["DataManagement"]</h5>
+    <!-- Subscribe to Pro Banner -->
+    <div class="pro-banner">
+        <div class="pro-banner-content">
+            <div class="pro-icon">
+                <div class="pro-icon-grid">
+                    <div class="grid-square green"></div>
+                    <div class="grid-square purple"></div>
+                    <div class="grid-square orange"></div>
+                    <div class="grid-square red"></div>
+                </div>
             </div>
-            <div class="settings-card-body">
-                <p class="text-muted">@Localizer["DataManagementDescription"]</p>
-                <button class="btn-primary" @onclick="ClearAllData">
-                    <i class="fas fa-trash"></i>@Localizer["ClearAllData"]
-                </button>
+            <div class="pro-text">
+                <h3>Subscribe to <strong>HabitKit Pro</strong></h3>
+                <p>Unlimited habits, import/export data, advanced analytics, and more</p>
+            </div>
+            <div class="pro-arrow">
+                <i class="fas fa-chevron-right"></i>
             </div>
         </div>
     </div>
-    
-    @if (showStatusMessage)
-    {
-        <div class="toast-container">
-            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <i class="fas fa-check-circle text-success"></i>
-                    <strong>Settings</strong>
-                    <button type="button" class="btn-close" @onclick="() => showStatusMessage = false"></button>
+
+    <!-- Settings Sections -->
+    <div class="settings-sections">
+        <!-- App Section -->
+        <div class="settings-section">
+            <h4 class="section-title">App</h4>
+            <div class="settings-list">
+                <div class="settings-item" @onclick="NavigateToGeneral">
+                    <div class="settings-item-left">
+                        <div class="settings-icon pink">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <span class="settings-label">General</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
                 </div>
-                <div class="toast-body">
-                    @statusMessage
+                
+                <div class="settings-item" @onclick="NavigateToReminders">
+                    <div class="settings-item-left">
+                        <div class="settings-icon blue">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <span class="settings-label">Daily Check-In Reminders</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item" @onclick="ToggleTheme">
+                    <div class="settings-item-left">
+                        <div class="settings-icon orange">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <span class="settings-label">Theme</span>
+                    </div>
+                    <div class="settings-toggle">
+                        <div class="toggle @(currentTheme == "dark" ? "active" : "")" @onclick="ToggleTheme">
+                            <div class="toggle-handle"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-item" @onclick="NavigateToArchived">
+                    <div class="settings-item-left">
+                        <div class="settings-icon green">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <span class="settings-label">Archived Habits</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item" @onclick="NavigateToImportExport">
+                    <div class="settings-item-left">
+                        <div class="settings-icon blue">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <span class="settings-label">Data Import/Export</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item" @onclick="NavigateToReorder">
+                    <div class="settings-item-left">
+                        <div class="settings-icon red">
+                            <i class="fas fa-sort"></i>
+                        </div>
+                        <span class="settings-label">Reorder Habits</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
                 </div>
             </div>
         </div>
-    }
-}
+
+        <!-- Help Section -->
+        <div class="settings-section">
+            <h4 class="section-title">Help</h4>
+            <div class="settings-list">
+                <div class="settings-item" @onclick="ShowOnboarding">
+                    <div class="settings-item-left">
+                        <div class="settings-icon orange">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <span class="settings-label">Show Onboarding</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item" @onclick="ShowWhatsNew">
+                    <div class="settings-item-left">
+                        <div class="settings-icon blue">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="settings-label">Show What's New</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item" @onclick="SendFeedback">
+                    <div class="settings-item-left">
+                        <div class="settings-icon gray">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <span class="settings-label">Send feedback</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="settings-section">
+            <h4 class="section-title">About</h4>
+            <div class="settings-list">
+                <div class="settings-item" @onclick="OpenWebsite">
+                    <div class="settings-item-left">
+                        <div class="settings-icon green">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <span class="settings-label">Website</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item" @onclick="OpenTwitter">
+                    <div class="settings-item-left">
+                        <div class="settings-icon blue">
+                            <i class="fab fa-twitter"></i>
+                        </div>
+                        <span class="settings-label">Follow on X</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item" @onclick="OpenPrivacyPolicy">
+                    <div class="settings-item-left">
+                        <div class="settings-icon pink">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <span class="settings-label">Privacy Policy</span>
+                    </div>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    private string currentCulture = "en";
-    private string currentTheme = "light";
-    private bool emailNotifications = true;
-    private bool inAppNotifications = true;
-    private string dailyReminderTime = "09:00";
-    private string? currentUserId;
-    private bool isLoading = true;
-    private bool isSaving = false;
-    private string? statusMessage;
-    private bool showStatusMessage = false;
+    private string currentTheme = "dark";
 
     protected override async Task OnInitializedAsync()
     {
-        currentUserId = await UserContext.GetCurrentUserIdAsync();
-        Console.WriteLine($"Settings OnInitializedAsync - currentUserId: {currentUserId}");
-        
-        if (!string.IsNullOrEmpty(currentUserId))
+        var userId = await UserContext.GetCurrentUserIdAsync();
+        if (!string.IsNullOrEmpty(userId))
         {
-            await LoadSettings();
-        }
-        else
-        {
-            Console.WriteLine("Settings OnInitializedAsync - No user ID found, user not authenticated");
-        }
-        isLoading = false;
-    }
-
-    private async Task LoadSettings()
-    {
-        if (string.IsNullOrEmpty(currentUserId)) return;
-
-        var settings = await UserSettingsService.GetUserSettingsAsync(currentUserId);
-        if (settings != null)
-        {
-            currentCulture = settings.Language;
-            currentTheme = settings.Theme;
-            emailNotifications = settings.EmailNotifications;
-            inAppNotifications = settings.InAppNotifications;
-            dailyReminderTime = settings.DailyReminderTime;
-        }
-    }
-
-    private async Task OnLanguageChanged(ChangeEventArgs e)
-    {
-        currentCulture = e.Value?.ToString() ?? "en";
-        await ChangeLanguage(currentCulture);
-    }
-
-    private async Task OnThemeChanged(ChangeEventArgs e)
-    {
-        currentTheme = e.Value?.ToString() ?? "light";
-        await ApplyThemeChange();
-    }
-
-    private async Task OnEmailNotificationsChanged(ChangeEventArgs e)
-    {
-        emailNotifications = (bool)(e.Value ?? false);
-        if (!string.IsNullOrEmpty(currentUserId))
-        {
-            await UserSettingsService.UpdateEmailNotificationsAsync(currentUserId, emailNotifications);
-            await ShowStatusMessage("Email notifications updated successfully!");
-        }
-    }
-
-    private async Task OnInAppNotificationsChanged(ChangeEventArgs e)
-    {
-        inAppNotifications = (bool)(e.Value ?? false);
-        if (!string.IsNullOrEmpty(currentUserId))
-        {
-            await UserSettingsService.UpdateInAppNotificationsAsync(currentUserId, inAppNotifications);
-            await ShowStatusMessage("In-app notifications updated successfully!");
-        }
-    }
-
-    private async Task OnReminderTimeChanged(ChangeEventArgs e)
-    {
-        dailyReminderTime = e.Value?.ToString() ?? "09:00";
-        if (!string.IsNullOrEmpty(currentUserId))
-        {
-            await UserSettingsService.UpdateDailyReminderTimeAsync(currentUserId, dailyReminderTime);
-            await ShowStatusMessage("Daily reminder time updated successfully!");
-        }
-    }
-
-    private async Task OnSaveButtonClick()
-    {
-        Console.WriteLine("Save button clicked!");
-        await SaveSettings();
-    }
-
-    private async Task SaveSettings()
-    {
-        Console.WriteLine($"SaveSettings called - currentUserId: {currentUserId}");
-        
-        if (string.IsNullOrEmpty(currentUserId))
-        {
-            Console.WriteLine("SaveSettings - User not authenticated");
-            await ShowStatusMessage("Error: User not authenticated. Please log in again.", true);
-            return;
-        }
-
-        isSaving = true;
-        Console.WriteLine($"SaveSettings - Starting save process for user: {currentUserId}");
-        
-        try
-        {
-            var settings = new Models.UserSettings
+            var settings = await UserSettingsService.GetUserSettingsAsync(userId);
+            if (settings != null)
             {
-                Language = currentCulture,
-                Theme = currentTheme,
-                EmailNotifications = emailNotifications,
-                InAppNotifications = inAppNotifications,
-                DailyReminderTime = dailyReminderTime
-            };
-
-            Console.WriteLine($"SaveSettings - Settings object created: Language={settings.Language}, Theme={settings.Theme}, EmailNotifications={settings.EmailNotifications}, InAppNotifications={settings.InAppNotifications}, DailyReminderTime={settings.DailyReminderTime}");
-
-            await UserSettingsService.CreateOrUpdateUserSettingsAsync(currentUserId, settings);
-            Console.WriteLine("SaveSettings - Settings saved successfully to database");
-            
-            await ShowStatusMessage("Settings saved successfully!");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"SaveSettings - Error occurred: {ex.Message}");
-            Console.WriteLine($"SaveSettings - Stack trace: {ex.StackTrace}");
-            await ShowStatusMessage($"Error saving settings: {ex.Message}", true);
-        }
-        finally
-        {
-            isSaving = false;
-            Console.WriteLine("SaveSettings - Save process completed");
-        }
-    }
-
-    private async Task ChangeLanguage(string culture)
-    {
-        if (string.IsNullOrEmpty(currentUserId)) return;
-
-        await UserSettingsService.UpdateLanguageAsync(currentUserId, culture);
-        
-        // Set culture cookie and reload page
-        await JSRuntime.InvokeVoidAsync("setCookie", "culture", culture, 365);
-        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
-    }
-
-    private async Task ApplyThemeChange()
-    {
-        if (string.IsNullOrEmpty(currentUserId)) return;
-
-        await UserSettingsService.UpdateThemeAsync(currentUserId, currentTheme);
-        
-        // Apply theme to the page
-        await JSRuntime.InvokeVoidAsync("setCookie", "theme", currentTheme, 365);
-        await JSRuntime.InvokeVoidAsync("applyTheme", currentTheme);
-        await ShowStatusMessage("Theme updated successfully!");
-    }
-
-    private async Task ClearAllData()
-    {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
-            "Are you sure you want to clear all your data? This action cannot be undone.");
-        
-        if (confirmed && !string.IsNullOrEmpty(currentUserId))
-        {
-            try
-            {
-                // Clear habits and completions
-                // Note: In a real app, you'd want to implement this in the service
-                await ShowStatusMessage("Data cleared successfully!");
-            }
-            catch (Exception ex)
-            {
-                await ShowStatusMessage($"Error clearing data: {ex.Message}", true);
+                currentTheme = settings.Theme;
             }
         }
     }
 
-    private async Task ShowStatusMessage(string message, bool isError = false)
+    private void NavigateToHome()
     {
-        statusMessage = message;
-        showStatusMessage = true;
-        StateHasChanged();
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async Task ToggleTheme()
+    {
+        currentTheme = currentTheme == "dark" ? "light" : "dark";
         
-        await Task.Delay(3000);
-        showStatusMessage = false;
+        var userId = await UserContext.GetCurrentUserIdAsync();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            await UserSettingsService.UpdateThemeAsync(userId, currentTheme);
+            await JSRuntime.InvokeVoidAsync("setCookie", "theme", currentTheme, 365);
+            await JSRuntime.InvokeVoidAsync("applyTheme", currentTheme);
+        }
+        
         StateHasChanged();
+    }
+
+    private void NavigateToGeneral()
+    {
+        // TODO: Implement general settings page
+        Console.WriteLine("Navigate to General settings");
+    }
+
+    private void NavigateToReminders()
+    {
+        // TODO: Implement reminders settings
+        Console.WriteLine("Navigate to Reminders settings");
+    }
+
+    private void NavigateToArchived()
+    {
+        // TODO: Implement archived habits page
+        Console.WriteLine("Navigate to Archived habits");
+    }
+
+    private void NavigateToImportExport()
+    {
+        // TODO: Implement import/export page
+        Console.WriteLine("Navigate to Import/Export");
+    }
+
+    private void NavigateToReorder()
+    {
+        // TODO: Implement reorder habits page
+        Console.WriteLine("Navigate to Reorder habits");
+    }
+
+    private void ShowOnboarding()
+    {
+        // TODO: Implement onboarding flow
+        Console.WriteLine("Show onboarding");
+    }
+
+    private void ShowWhatsNew()
+    {
+        // TODO: Implement what's new modal
+        Console.WriteLine("Show what's new");
+    }
+
+    private void SendFeedback()
+    {
+        // TODO: Implement feedback form
+        Console.WriteLine("Send feedback");
+    }
+
+    private void OpenWebsite()
+    {
+        // TODO: Open website in browser
+        Console.WriteLine("Open website");
+    }
+
+    private void OpenTwitter()
+    {
+        // TODO: Open Twitter profile
+        Console.WriteLine("Open Twitter");
+    }
+
+    private void OpenPrivacyPolicy()
+    {
+        // TODO: Open privacy policy
+        Console.WriteLine("Open privacy policy");
     }
 }
