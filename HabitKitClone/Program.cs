@@ -6,8 +6,10 @@ using HabitKitClone.Components.Account;
 using HabitKitClone.Data;
 using HabitKitClone.Services;
 using HabitKitClone.Mapping;
+using HabitKitClone.Resources;
 using FluentValidation;
 using System.Globalization;
+using Microsoft.Extensions.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +81,9 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
 });
+
+// Add localization for Blazor components
+builder.Services.AddScoped<IStringLocalizer<SharedResource>, StringLocalizer<SharedResource>>();
 
 var app = builder.Build();
 

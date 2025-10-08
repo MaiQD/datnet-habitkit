@@ -157,4 +157,31 @@
   <data name="InAppNotifications" xml:space="preserve">
     <value>In-App Notifications</value>
   </data>
+  <data name="GeneralSettings" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+  <data name="DailyReminderTime" xml:space="preserve">
+    <value>Daily Reminder Time</value>
+  </data>
+  <data name="AccountInformation" xml:space="preserve">
+    <value>Account Information</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="MemberSince" xml:space="preserve">
+    <value>Member Since</value>
+  </data>
+  <data name="ManageAccount" xml:space="preserve">
+    <value>Manage Account</value>
+  </data>
+  <data name="DataManagement" xml:space="preserve">
+    <value>Data Management</value>
+  </data>
+  <data name="DataManagementDescription" xml:space="preserve">
+    <value>Manage your data and privacy settings</value>
+  </data>
+  <data name="ClearAllData" xml:space="preserve">
+    <value>Clear All Data</value>
+  </data>
 </root>

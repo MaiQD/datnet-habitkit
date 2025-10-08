@@ -157,4 +157,31 @@
   <data name="InAppNotifications" xml:space="preserve">
     <value>Thông báo trong ứng dụng</value>
   </data>
+  <data name="GeneralSettings" xml:space="preserve">
+    <value>Cài đặt chung</value>
+  </data>
+  <data name="DailyReminderTime" xml:space="preserve">
+    <value>Thời gian nhắc nhở hàng ngày</value>
+  </data>
+  <data name="AccountInformation" xml:space="preserve">
+    <value>Thông tin tài khoản</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="MemberSince" xml:space="preserve">
+    <value>Thành viên từ</value>
+  </data>
+  <data name="ManageAccount" xml:space="preserve">
+    <value>Quản lý tài khoản</value>
+  </data>
+  <data name="DataManagement" xml:space="preserve">
+    <value>Quản lý dữ liệu</value>
+  </data>
+  <data name="DataManagementDescription" xml:space="preserve">
+    <value>Quản lý dữ liệu và cài đặt quyền riêng tư</value>
+  </data>
+  <data name="ClearAllData" xml:space="preserve">
+    <value>Xóa tất cả dữ liệu</value>
+  </data>
 </root>

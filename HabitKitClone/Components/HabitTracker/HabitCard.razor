@@ -1,0 +1,55 @@
+@using Microsoft.Extensions.Localization
+@using HabitKitClone.Resources
+
+<div class="habit-card" role="article" aria-labelledby="habit-title-@Habit.Id">
+    <div class="habit-header">
+        <div class="habit-icon" style="background-color: @Habit.Color">
+            @Habit.Icon
+        </div>
+        <div class="habit-info">
+            <h3 id="habit-title-@Habit.Id" class="habit-title">@Habit.Title</h3>
+            <p class="habit-description">@Habit.Description</p>
+        </div>
+        <div class="habit-actions">
+            <button class="completion-checkbox @(Habit.IsCompletedToday ? "completed" : "")"
+                    aria-label="@(Habit.IsCompletedToday ? "Mark as incomplete" : "Mark as complete")"
+                    @onclick="() => OnToggleCompletion.InvokeAsync(Habit)">
+                @if (Habit.IsCompletedToday)
+                {
+                    <i class="fas fa-check"></i>
+                }
+            </button>
+        </div>
+    </div>
+    
+    <div class="habit-progress">
+        <div class="progress-summary">
+            <span class="streak-count">@Habit.StreakCount day streak</span>
+        </div>
+        
+        <ContributionChart Data="Habit.ContributionData" 
+                          Color="Habit.Color" 
+                          HabitId="Habit.Id" />
+    </div>
+    
+    <div class="habit-footer">
+        <div class="view-controls">
+            <button class="view-button active" aria-label="Grid view">
+                <i class="fas fa-th"></i>
+            </button>
+            <button class="view-button" aria-label="List view">
+                <i class="fas fa-list"></i>
+            </button>
+            <button class="view-button" aria-label="Calendar view">
+                <i class="fas fa-calendar"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public HabitModel Habit { get; set; } = new();
+    [Parameter] public EventCallback<HabitModel> OnToggleCompletion { get; set; }
+    [Parameter] public EventCallback<HabitModel> OnEditHabit { get; set; }
+    [Parameter] public EventCallback<HabitModel> OnDeleteHabit { get; set; }
+}

@@ -1,0 +1,92 @@
+@using Microsoft.Extensions.Localization
+@using HabitKitClone.Resources
+
+<div class="modal-overlay" @onclick="OnCancel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content" @onclick:stopPropagation="true">
+        <div class="modal-header">
+            <h2 id="modal-title">@(Habit.Id == 0 ? "Add Habit" : "Edit Habit")</h2>
+            <button class="modal-close" @onclick="OnCancel" aria-label="Close modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="habit-title" class="form-label">Title</label>
+                <input type="text" 
+                       id="habit-title" 
+                       class="form-control" 
+                       @bind="Habit.Title" 
+                       placeholder="Enter habit title" />
+            </div>
+            
+            <div class="form-group">
+                <label for="habit-description" class="form-label">Description</label>
+                <textarea id="habit-description" 
+                          class="form-control" 
+                          @bind="Habit.Description" 
+                          placeholder="Enter habit description"
+                          rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="habit-category" class="form-label">Category</label>
+                <select id="habit-category" class="form-control" @bind="Habit.Category">
+                    <option value="study">Study</option>
+                    <option value="health">Health</option>
+                    <option value="work">Work</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="habit-icon" class="form-label">Icon</label>
+                <input type="text" 
+                       id="habit-icon" 
+                       class="form-control" 
+                       @bind="Habit.Icon" 
+                       placeholder="e.g., 💻, 🏋️, 📚" />
+            </div>
+            
+            <div class="form-group">
+                <label for="habit-color" class="form-label">Color</label>
+                <div class="color-picker">
+                    @foreach (var color in AvailableColors)
+                    {
+                        <button type="button" 
+                                class="color-option @(Habit.Color == color ? "selected" : "")"
+                                style="background-color: @color"
+                                @onclick="() => Habit.Color = color"
+                                aria-label="Select color @color">
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" @onclick="OnCancel">Cancel</button>
+            <button type="button" class="btn-primary" @onclick="SaveHabit">Save</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public HabitModel Habit { get; set; } = new();
+    [Parameter] public EventCallback<HabitModel> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private readonly string[] AvailableColors = new[]
+    {
+        "#e74c3c", "#e67e22", "#f39c12", "#f1c40f", "#2ecc71", 
+        "#27ae60", "#1abc9c", "#16a085", "#3498db", "#2980b9", 
+        "#9b59b6", "#8e44ad", "#e91e63", "#ad1457", "#34495e"
+    };
+
+    private async Task SaveHabit()
+    {
+        if (!string.IsNullOrWhiteSpace(Habit.Title))
+        {
+            await OnSave.InvokeAsync(Habit);
+        }
+    }
+}

@@ -15,7 +15,9 @@ public class UserContextService
     public async Task<string?> GetCurrentUserIdAsync()
     {
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        return authState.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = authState.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        Console.WriteLine($"UserContextService.GetCurrentUserIdAsync - IsAuthenticated: {authState.User?.Identity?.IsAuthenticated}, UserId: {userId}");
+        return userId;
     }
 
     public async Task<bool> IsAuthenticatedAsync()

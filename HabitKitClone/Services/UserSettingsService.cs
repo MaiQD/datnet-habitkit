@@ -21,16 +21,21 @@ namespace HabitKitClone.Services
 
         public async Task<UserSettings> CreateOrUpdateUserSettingsAsync(string userId, UserSettings settings)
         {
+            Console.WriteLine($"UserSettingsService.CreateOrUpdateUserSettingsAsync called - userId: {userId}");
+            
             var existingSettings = await GetUserSettingsAsync(userId);
+            Console.WriteLine($"UserSettingsService - existingSettings found: {existingSettings != null}");
             
             if (existingSettings == null)
             {
+                Console.WriteLine("UserSettingsService - Creating new settings");
                 settings.UserId = userId;
                 settings.CreatedAt = DateTime.UtcNow;
                 _context.UserSettings.Add(settings);
             }
             else
             {
+                Console.WriteLine("UserSettingsService - Updating existing settings");
                 existingSettings.Language = settings.Language;
                 existingSettings.Theme = settings.Theme;
                 existingSettings.EmailNotifications = settings.EmailNotifications;
@@ -39,7 +44,10 @@ namespace HabitKitClone.Services
                 existingSettings.UpdatedAt = DateTime.UtcNow;
             }
 
+            Console.WriteLine("UserSettingsService - Saving changes to database");
             await _context.SaveChangesAsync();
+            Console.WriteLine("UserSettingsService - Changes saved successfully");
+            
             return existingSettings ?? settings;
         }
 

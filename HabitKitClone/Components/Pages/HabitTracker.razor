@@ -1,0 +1,243 @@
+@page "/habit-tracker"
+@using HabitKitClone.Components.HabitTracker
+@using Microsoft.Extensions.Localization
+@using HabitKitClone.Resources
+@inject IStringLocalizer<SharedResource> Localizer
+@inject IJSRuntime JSRuntime
+
+<PageTitle>HabitKit - Track Your Habits</PageTitle>
+
+<div class="habit-tracker-container">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <button class="icon-button" aria-label="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+        <div class="header-center">
+            <h1 class="app-title">HabitKit</h1>
+            <span class="pro-badge">PRO</span>
+        </div>
+        <div class="header-right">
+            <button class="icon-button" aria-label="Statistics">
+                <i class="fas fa-chart-bar"></i>
+            </button>
+            <button class="icon-button add-button" aria-label="Add Habit" @onclick="ShowAddHabitModal">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Category Filters -->
+    <section class="category-filters" role="tablist" aria-label="Habit categories">
+        @foreach (var category in Categories)
+        {
+            <button class="category-filter @(SelectedCategory == category.Key ? "active" : "")"
+                    role="tab"
+                    aria-selected="@(SelectedCategory == category.Key ? "true" : "false")"
+                    @onclick="() => SelectCategory(category.Key)">
+                @category.Value
+            </button>
+        }
+    </section>
+
+    <!-- Habits List -->
+    <main class="habits-list" role="main">
+        @if (FilteredHabits.Any())
+        {
+            @foreach (var habit in FilteredHabits)
+            {
+                <HabitCard Habit="habit" 
+                           OnToggleCompletion="ToggleHabitCompletion"
+                           OnEditHabit="EditHabit"
+                           OnDeleteHabit="DeleteHabit" />
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <h2>No habits found</h2>
+                <p>@(SelectedCategory == "all" ? "Create your first habit to get started!" : $"No {SelectedCategory} habits found.")</p>
+                <button class="btn-primary" @onclick="ShowAddHabitModal">
+                    <i class="fas fa-plus"></i> Add Habit
+                </button>
+            </div>
+        }
+    </main>
+</div>
+
+<!-- Add/Edit Habit Modal -->
+@if (ShowModal)
+{
+    <HabitModal Habit="EditingHabit" 
+                OnSave="SaveHabit" 
+                OnCancel="CancelEdit" />
+}
+
+@code {
+    private string SelectedCategory = "all";
+    private bool ShowModal = false;
+    private HabitModel? EditingHabit;
+    
+    private readonly Dictionary<string, string> Categories = new()
+    {
+        { "all", "All" },
+        { "study", "Study" },
+        { "health", "Health" },
+        { "work", "Work" }
+    };
+
+    private List<HabitModel> Habits = new();
+    private List<HabitModel> FilteredHabits => 
+        SelectedCategory == "all" 
+            ? Habits 
+            : Habits.Where(h => h.Category.Equals(SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMockData();
+    }
+
+    private void SelectCategory(string category)
+    {
+        SelectedCategory = category;
+        StateHasChanged();
+    }
+
+    private void ShowAddHabitModal()
+    {
+        EditingHabit = new HabitModel();
+        ShowModal = true;
+    }
+
+    private void EditHabit(HabitModel habit)
+    {
+        EditingHabit = habit;
+        ShowModal = true;
+    }
+
+    private void ToggleHabitCompletion(HabitModel habit)
+    {
+        habit.IsCompletedToday = !habit.IsCompletedToday;
+        if (habit.IsCompletedToday)
+        {
+            habit.StreakCount++;
+        }
+        else
+        {
+            habit.StreakCount = Math.Max(0, habit.StreakCount - 1);
+        }
+        StateHasChanged();
+    }
+
+    private void DeleteHabit(HabitModel habit)
+    {
+        Habits.Remove(habit);
+        StateHasChanged();
+    }
+
+    private void SaveHabit(HabitModel habit)
+    {
+        if (Habits.Contains(habit))
+        {
+            // Update existing habit
+            var index = Habits.IndexOf(habit);
+            Habits[index] = habit;
+        }
+        else
+        {
+            // Add new habit
+            habit.Id = Habits.Count + 1;
+            Habits.Add(habit);
+        }
+        ShowModal = false;
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        ShowModal = false;
+        EditingHabit = null;
+    }
+
+    private async Task LoadMockData()
+    {
+        // Simulate loading delay
+        await Task.Delay(100);
+        
+        Habits = new List<HabitModel>
+        {
+            new()
+            {
+                Id = 1,
+                Title = "Work",
+                Description = "Mostly complete EH and GB works listed...",
+                Category = "work",
+                Icon = "💻",
+                Color = "#e74c3c",
+                IsCompletedToday = true,
+                StreakCount = 5,
+                ContributionData = GenerateContributionData("#e74c3c")
+            },
+            new()
+            {
+                Id = 2,
+                Title = "Exercise",
+                Description = "Try to do some kind of activities a day. Li...",
+                Category = "health",
+                Icon = "🏋️",
+                Color = "#27ae60",
+                IsCompletedToday = true,
+                StreakCount = 3,
+                ContributionData = GenerateContributionData("#27ae60")
+            },
+            new()
+            {
+                Id = 3,
+                Title = "Leetcode | Tech Related",
+                Description = "Learning or resolving a Leetcode proble...",
+                Category = "study",
+                Icon = ">_",
+                Color = "#e74c3c",
+                IsCompletedToday = true,
+                StreakCount = 7,
+                ContributionData = GenerateContributionData("#e74c3c")
+            },
+            new()
+            {
+                Id = 4,
+                Title = "2nd Language",
+                Description = "can be English, Chinese",
+                Category = "study",
+                Icon = "📚",
+                Color = "#f39c12",
+                IsCompletedToday = true,
+                StreakCount = 2,
+                ContributionData = GenerateContributionData("#f39c12")
+            }
+        };
+    }
+
+    private List<ContributionDay> GenerateContributionData(string color)
+    {
+        var data = new List<ContributionDay>();
+        var random = new Random();
+        var startDate = DateTime.Today.AddDays(-365);
+        
+        for (int i = 0; i < 365; i++)
+        {
+            var date = startDate.AddDays(i);
+            var level = random.Next(0, 5); // 0-4 levels
+            data.Add(new ContributionDay
+            {
+                Date = date,
+                Level = level,
+                Color = color
+            });
+        }
+        
+        return data;
+    }
+}

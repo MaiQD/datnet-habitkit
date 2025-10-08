@@ -15,128 +15,126 @@
 
 @if (isLoading)
 {
-    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+    <div class="loading-container">
+        <div class="spinner"></div>
     </div>
 }
 else
 {
-    <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="h3 mb-4">@Localizer["Settings"]</h1>
-        </div>
-    </div>
+    <div class="settings-container">
+        <h1 class="mb-4">@Localizer["Settings"]</h1>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">@Localizer["GeneralSettings"]</h5>
-                </div>
-                <div class="card-body">
-                    <form>
-                        <!-- Language Setting -->
-                        <div class="mb-4">
-                            <label for="languageSelect" class="form-label">@Localizer["Language"]</label>
-                            <select class="form-select" id="languageSelect" @onchange="OnLanguageChanged">
-                                <option value="en" selected="@(currentCulture == "en")">English</option>
-                                <option value="vi" selected="@(currentCulture == "vi")">Tiếng Việt</option>
-                            </select>
-                        </div>
-
-                        <!-- Theme Setting -->
-                        <div class="mb-4">
-                            <label for="themeSelect" class="form-label">@Localizer["Theme"]</label>
-                            <select class="form-select" id="themeSelect" @onchange="OnThemeChanged">
-                                <option value="light" selected="@(currentTheme == "light")">@Localizer["Light"]</option>
-                                <option value="dark" selected="@(currentTheme == "dark")">@Localizer["Dark"]</option>
-                            </select>
-                        </div>
-
-                        <!-- Notifications Section -->
-                        <div class="mb-4">
-                            <h6>@Localizer["Notifications"]</h6>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="emailNotifications" 
-                                       checked="@emailNotifications" @onchange="OnEmailNotificationsChanged">
-                                <label class="form-check-label" for="emailNotifications">
-                                    @Localizer["EmailNotifications"]
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="inAppNotifications" 
-                                       checked="@inAppNotifications" @onchange="OnInAppNotificationsChanged">
-                                <label class="form-check-label" for="inAppNotifications">
-                                    @Localizer["InAppNotifications"]
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Daily Reminder Time -->
-                        <div class="mb-4">
-                            <label for="reminderTime" class="form-label">@Localizer["DailyReminderTime"]</label>
-                            <input type="time" class="form-control" id="reminderTime" 
-                                   value="@dailyReminderTime" @onchange="OnReminderTimeChanged">
-                        </div>
-
-                        <button type="button" class="btn btn-primary" @onclick="SaveSettings" disabled="@isSaving">
-                            @if (isSaving)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            }
-                            else
-                            {
-                                <i class="fas fa-save me-2"></i>
-                            }
-                            @Localizer["Save"]
-                        </button>
-                    </form>
-                </div>
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <h5 class="mb-0">@Localizer["GeneralSettings"]</h5>
             </div>
-        </div>
+            <div class="settings-card-body">
+                <form>
+                    <!-- Language Setting -->
+                    <div class="form-group">
+                        <label for="languageSelect" class="form-label">@Localizer["Language"]</label>
+                        <select class="form-select" id="languageSelect" @onchange="OnLanguageChanged">
+                            <option value="en" selected="@(currentCulture == "en")">English</option>
+                            <option value="vi" selected="@(currentCulture == "vi")">Tiếng Việt</option>
+                        </select>
+                    </div>
 
-        <div class="col-md-4">
-            <!-- Account Information -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">@Localizer["AccountInformation"]</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>@Localizer["Email"]:</strong> user@example.com</p>
-                    <p><strong>@Localizer["MemberSince"]:</strong> @DateTime.Now.ToString("MMMM yyyy")</p>
-                    <a href="/Account/Manage" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-user-edit me-1"></i>@Localizer["ManageAccount"]
-                    </a>
-                </div>
-            </div>
+                    <!-- Theme Setting -->
+                    <div class="form-group">
+                        <label for="themeSelect" class="form-label">@Localizer["Theme"]</label>
+                        <select class="form-select" id="themeSelect" @onchange="OnThemeChanged">
+                            <option value="light" selected="@(currentTheme == "light")">@Localizer["Light"]</option>
+                            <option value="dark" selected="@(currentTheme == "dark")">@Localizer["Dark"]</option>
+                        </select>
+                    </div>
 
-            <!-- Data Management -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">@Localizer["DataManagement"]</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small">@Localizer["DataManagementDescription"]</p>
-                    <button class="btn btn-outline-danger btn-sm" @onclick="ClearAllData">
-                        <i class="fas fa-trash me-1"></i>@Localizer["ClearAllData"]
+                    <!-- Notifications Section -->
+                    <div class="form-group">
+                        <h6>@Localizer["Notifications"]</h6>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                   checked="@emailNotifications" @onchange="OnEmailNotificationsChanged">
+                            <label class="form-check-label" for="emailNotifications">
+                                @Localizer["EmailNotifications"]
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="inAppNotifications" 
+                                   checked="@inAppNotifications" @onchange="OnInAppNotificationsChanged">
+                            <label class="form-check-label" for="inAppNotifications">
+                                @Localizer["InAppNotifications"]
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Daily Reminder Time -->
+                    <div class="form-group">
+                        <label for="reminderTime" class="form-label">@Localizer["DailyReminderTime"]</label>
+                        <input type="time" class="form-control" id="reminderTime" 
+                               value="@dailyReminderTime" @onchange="OnReminderTimeChanged">
+                    </div>
+
+                    <button type="button" class="btn-primary" @onclick="OnSaveButtonClick" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner"></span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-save"></i>
+                        }
+                        @Localizer["Save"]
                     </button>
-                </div>
+                    
+                    @if (!string.IsNullOrEmpty(currentUserId))
+                    {
+                        <small class="text-muted d-block mt-2">User ID: @currentUserId</small>
+                    }
+                    else
+                    {
+                        <small class="text-danger d-block mt-2">Warning: User not authenticated</small>
+                    }
+                </form>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <h5 class="mb-0">@Localizer["AccountInformation"]</h5>
+            </div>
+            <div class="settings-card-body">
+                <p><strong>@Localizer["Email"]:</strong> user@example.com</p>
+                <p><strong>@Localizer["MemberSince"]:</strong> @DateTime.Now.ToString("MMMM yyyy")</p>
+                <a href="/Account/Manage" class="btn-primary">
+                    <i class="fas fa-user-edit"></i>@Localizer["ManageAccount"]
+                </a>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <h5 class="mb-0">@Localizer["DataManagement"]</h5>
+            </div>
+            <div class="settings-card-body">
+                <p class="text-muted">@Localizer["DataManagementDescription"]</p>
+                <button class="btn-primary" @onclick="ClearAllData">
+                    <i class="fas fa-trash"></i>@Localizer["ClearAllData"]
+                </button>
             </div>
         </div>
     </div>
     
     @if (showStatusMessage)
     {
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast-container">
             <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
-                    <i class="fas fa-check-circle text-success me-2"></i>
-                    <strong class="me-auto">Settings</strong>
+                    <i class="fas fa-check-circle text-success"></i>
+                    <strong>Settings</strong>
                     <button type="button" class="btn-close" @onclick="() => showStatusMessage = false"></button>
                 </div>
                 <div class="toast-body">
@@ -145,7 +143,6 @@ else
             </div>
         </div>
     }
-</div>
 }
 
 @code {
@@ -163,9 +160,15 @@ else
     protected override async Task OnInitializedAsync()
     {
         currentUserId = await UserContext.GetCurrentUserIdAsync();
+        Console.WriteLine($"Settings OnInitializedAsync - currentUserId: {currentUserId}");
+        
         if (!string.IsNullOrEmpty(currentUserId))
         {
             await LoadSettings();
+        }
+        else
+        {
+            Console.WriteLine("Settings OnInitializedAsync - No user ID found, user not authenticated");
         }
         isLoading = false;
     }
@@ -227,11 +230,26 @@ else
         }
     }
 
+    private async Task OnSaveButtonClick()
+    {
+        Console.WriteLine("Save button clicked!");
+        await SaveSettings();
+    }
+
     private async Task SaveSettings()
     {
-        if (string.IsNullOrEmpty(currentUserId)) return;
+        Console.WriteLine($"SaveSettings called - currentUserId: {currentUserId}");
+        
+        if (string.IsNullOrEmpty(currentUserId))
+        {
+            Console.WriteLine("SaveSettings - User not authenticated");
+            await ShowStatusMessage("Error: User not authenticated. Please log in again.", true);
+            return;
+        }
 
         isSaving = true;
+        Console.WriteLine($"SaveSettings - Starting save process for user: {currentUserId}");
+        
         try
         {
             var settings = new Models.UserSettings
@@ -243,16 +261,23 @@ else
                 DailyReminderTime = dailyReminderTime
             };
 
+            Console.WriteLine($"SaveSettings - Settings object created: Language={settings.Language}, Theme={settings.Theme}, EmailNotifications={settings.EmailNotifications}, InAppNotifications={settings.InAppNotifications}, DailyReminderTime={settings.DailyReminderTime}");
+
             await UserSettingsService.CreateOrUpdateUserSettingsAsync(currentUserId, settings);
+            Console.WriteLine("SaveSettings - Settings saved successfully to database");
+            
             await ShowStatusMessage("Settings saved successfully!");
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"SaveSettings - Error occurred: {ex.Message}");
+            Console.WriteLine($"SaveSettings - Stack trace: {ex.StackTrace}");
             await ShowStatusMessage($"Error saving settings: {ex.Message}", true);
         }
         finally
         {
             isSaving = false;
+            Console.WriteLine("SaveSettings - Save process completed");
         }
     }
 
