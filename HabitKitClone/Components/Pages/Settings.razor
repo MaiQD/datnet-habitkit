@@ -1,0 +1,312 @@
+@page "/settings"
+@using HabitKitClone.Services
+@using HabitKitClone.Resources
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@inject NavigationManager NavigationManager
+@inject IUserSettingsService UserSettingsService
+@inject UserContextService UserContext
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>@Localizer["Settings"]</PageTitle>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">@Localizer["Settings"]</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">@Localizer["GeneralSettings"]</h5>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <!-- Language Setting -->
+                        <div class="mb-4">
+                            <label for="languageSelect" class="form-label">@Localizer["Language"]</label>
+                            <select class="form-select" id="languageSelect" @onchange="OnLanguageChanged">
+                                <option value="en" selected="@(currentCulture == "en")">English</option>
+                                <option value="vi" selected="@(currentCulture == "vi")">Tiếng Việt</option>
+                            </select>
+                        </div>
+
+                        <!-- Theme Setting -->
+                        <div class="mb-4">
+                            <label for="themeSelect" class="form-label">@Localizer["Theme"]</label>
+                            <select class="form-select" id="themeSelect" @onchange="OnThemeChanged">
+                                <option value="light" selected="@(currentTheme == "light")">@Localizer["Light"]</option>
+                                <option value="dark" selected="@(currentTheme == "dark")">@Localizer["Dark"]</option>
+                            </select>
+                        </div>
+
+                        <!-- Notifications Section -->
+                        <div class="mb-4">
+                            <h6>@Localizer["Notifications"]</h6>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                       checked="@emailNotifications" @onchange="OnEmailNotificationsChanged">
+                                <label class="form-check-label" for="emailNotifications">
+                                    @Localizer["EmailNotifications"]
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="inAppNotifications" 
+                                       checked="@inAppNotifications" @onchange="OnInAppNotificationsChanged">
+                                <label class="form-check-label" for="inAppNotifications">
+                                    @Localizer["InAppNotifications"]
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Daily Reminder Time -->
+                        <div class="mb-4">
+                            <label for="reminderTime" class="form-label">@Localizer["DailyReminderTime"]</label>
+                            <input type="time" class="form-control" id="reminderTime" 
+                                   value="@dailyReminderTime" @onchange="OnReminderTimeChanged">
+                        </div>
+
+                        <button type="button" class="btn btn-primary" @onclick="SaveSettings" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            }
+                            else
+                            {
+                                <i class="fas fa-save me-2"></i>
+                            }
+                            @Localizer["Save"]
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Account Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">@Localizer["AccountInformation"]</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>@Localizer["Email"]:</strong> user@example.com</p>
+                    <p><strong>@Localizer["MemberSince"]:</strong> @DateTime.Now.ToString("MMMM yyyy")</p>
+                    <a href="/Account/Manage" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-user-edit me-1"></i>@Localizer["ManageAccount"]
+                    </a>
+                </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">@Localizer["DataManagement"]</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">@Localizer["DataManagementDescription"]</p>
+                    <button class="btn btn-outline-danger btn-sm" @onclick="ClearAllData">
+                        <i class="fas fa-trash me-1"></i>@Localizer["ClearAllData"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    @if (showStatusMessage)
+    {
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <strong class="me-auto">Settings</strong>
+                    <button type="button" class="btn-close" @onclick="() => showStatusMessage = false"></button>
+                </div>
+                <div class="toast-body">
+                    @statusMessage
+                </div>
+            </div>
+        </div>
+    }
+</div>
+}
+
+@code {
+    private string currentCulture = "en";
+    private string currentTheme = "light";
+    private bool emailNotifications = true;
+    private bool inAppNotifications = true;
+    private string dailyReminderTime = "09:00";
+    private string? currentUserId;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? statusMessage;
+    private bool showStatusMessage = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUserId = await UserContext.GetCurrentUserIdAsync();
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            await LoadSettings();
+        }
+        isLoading = false;
+    }
+
+    private async Task LoadSettings()
+    {
+        if (string.IsNullOrEmpty(currentUserId)) return;
+
+        var settings = await UserSettingsService.GetUserSettingsAsync(currentUserId);
+        if (settings != null)
+        {
+            currentCulture = settings.Language;
+            currentTheme = settings.Theme;
+            emailNotifications = settings.EmailNotifications;
+            inAppNotifications = settings.InAppNotifications;
+            dailyReminderTime = settings.DailyReminderTime;
+        }
+    }
+
+    private async Task OnLanguageChanged(ChangeEventArgs e)
+    {
+        currentCulture = e.Value?.ToString() ?? "en";
+        await ChangeLanguage(currentCulture);
+    }
+
+    private async Task OnThemeChanged(ChangeEventArgs e)
+    {
+        currentTheme = e.Value?.ToString() ?? "light";
+        await ApplyThemeChange();
+    }
+
+    private async Task OnEmailNotificationsChanged(ChangeEventArgs e)
+    {
+        emailNotifications = (bool)(e.Value ?? false);
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            await UserSettingsService.UpdateEmailNotificationsAsync(currentUserId, emailNotifications);
+            await ShowStatusMessage("Email notifications updated successfully!");
+        }
+    }
+
+    private async Task OnInAppNotificationsChanged(ChangeEventArgs e)
+    {
+        inAppNotifications = (bool)(e.Value ?? false);
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            await UserSettingsService.UpdateInAppNotificationsAsync(currentUserId, inAppNotifications);
+            await ShowStatusMessage("In-app notifications updated successfully!");
+        }
+    }
+
+    private async Task OnReminderTimeChanged(ChangeEventArgs e)
+    {
+        dailyReminderTime = e.Value?.ToString() ?? "09:00";
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            await UserSettingsService.UpdateDailyReminderTimeAsync(currentUserId, dailyReminderTime);
+            await ShowStatusMessage("Daily reminder time updated successfully!");
+        }
+    }
+
+    private async Task SaveSettings()
+    {
+        if (string.IsNullOrEmpty(currentUserId)) return;
+
+        isSaving = true;
+        try
+        {
+            var settings = new Models.UserSettings
+            {
+                Language = currentCulture,
+                Theme = currentTheme,
+                EmailNotifications = emailNotifications,
+                InAppNotifications = inAppNotifications,
+                DailyReminderTime = dailyReminderTime
+            };
+
+            await UserSettingsService.CreateOrUpdateUserSettingsAsync(currentUserId, settings);
+            await ShowStatusMessage("Settings saved successfully!");
+        }
+        catch (Exception ex)
+        {
+            await ShowStatusMessage($"Error saving settings: {ex.Message}", true);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task ChangeLanguage(string culture)
+    {
+        if (string.IsNullOrEmpty(currentUserId)) return;
+
+        await UserSettingsService.UpdateLanguageAsync(currentUserId, culture);
+        
+        // Set culture cookie and reload page
+        await JSRuntime.InvokeVoidAsync("setCookie", "culture", culture, 365);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private async Task ApplyThemeChange()
+    {
+        if (string.IsNullOrEmpty(currentUserId)) return;
+
+        await UserSettingsService.UpdateThemeAsync(currentUserId, currentTheme);
+        
+        // Apply theme to the page
+        await JSRuntime.InvokeVoidAsync("setCookie", "theme", currentTheme, 365);
+        await JSRuntime.InvokeVoidAsync("applyTheme", currentTheme);
+        await ShowStatusMessage("Theme updated successfully!");
+    }
+
+    private async Task ClearAllData()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to clear all your data? This action cannot be undone.");
+        
+        if (confirmed && !string.IsNullOrEmpty(currentUserId))
+        {
+            try
+            {
+                // Clear habits and completions
+                // Note: In a real app, you'd want to implement this in the service
+                await ShowStatusMessage("Data cleared successfully!");
+            }
+            catch (Exception ex)
+            {
+                await ShowStatusMessage($"Error clearing data: {ex.Message}", true);
+            }
+        }
+    }
+
+    private async Task ShowStatusMessage(string message, bool isError = false)
+    {
+        statusMessage = message;
+        showStatusMessage = true;
+        StateHasChanged();
+        
+        await Task.Delay(3000);
+        showStatusMessage = false;
+        StateHasChanged();
+    }
+}

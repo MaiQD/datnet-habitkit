@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppTitle" xml:space="preserve">
+    <value>HabitKit</value>
+  </data>
+  <data name="Habits" xml:space="preserve">
+    <value>Thói quen</value>
+  </data>
+  <data name="Calendar" xml:space="preserve">
+    <value>Lịch</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>Thống kê</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Cài đặt</value>
+  </data>
+  <data name="AddHabit" xml:space="preserve">
+    <value>Thêm thói quen</value>
+  </data>
+  <data name="EditHabit" xml:space="preserve">
+    <value>Chỉnh sửa thói quen</value>
+  </data>
+  <data name="DeleteHabit" xml:space="preserve">
+    <value>Xóa thói quen</value>
+  </data>
+  <data name="HabitName" xml:space="preserve">
+    <value>Tên thói quen</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="Color" xml:space="preserve">
+    <value>Màu sắc</value>
+  </data>
+  <data name="Icon" xml:space="preserve">
+    <value>Biểu tượng</value>
+  </data>
+  <data name="Frequency" xml:space="preserve">
+    <value>Tần suất</value>
+  </data>
+  <data name="Daily" xml:space="preserve">
+    <value>Hàng ngày</value>
+  </data>
+  <data name="Weekly" xml:space="preserve">
+    <value>Hàng tuần</value>
+  </data>
+  <data name="Monthly" xml:space="preserve">
+    <value>Hàng tháng</value>
+  </data>
+  <data name="TargetCount" xml:space="preserve">
+    <value>Số lần mục tiêu</value>
+  </data>
+  <data name="ReminderTime" xml:space="preserve">
+    <value>Thời gian nhắc nhở</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Lưu</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="CurrentStreak" xml:space="preserve">
+    <value>Chuỗi hiện tại</value>
+  </data>
+  <data name="LongestStreak" xml:space="preserve">
+    <value>Chuỗi dài nhất</value>
+  </data>
+  <data name="CompletionRate" xml:space="preserve">
+    <value>Tỷ lệ hoàn thành</value>
+  </data>
+  <data name="TotalCompletions" xml:space="preserve">
+    <value>Tổng số lần hoàn thành</value>
+  </data>
+  <data name="MarkComplete" xml:space="preserve">
+    <value>Đánh dấu hoàn thành</value>
+  </data>
+  <data name="MarkIncomplete" xml:space="preserve">
+    <value>Đánh dấu chưa hoàn thành</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Ngôn ngữ</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Chủ đề</value>
+  </data>
+  <data name="Light" xml:space="preserve">
+    <value>Sáng</value>
+  </data>
+  <data name="Dark" xml:space="preserve">
+    <value>Tối</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Thông báo</value>
+  </data>
+  <data name="EmailNotifications" xml:space="preserve">
+    <value>Thông báo email</value>
+  </data>
+  <data name="InAppNotifications" xml:space="preserve">
+    <value>Thông báo trong ứng dụng</value>
+  </data>
+</root>

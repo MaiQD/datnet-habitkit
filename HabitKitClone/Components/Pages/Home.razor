@@ -1,0 +1,258 @@
+﻿@page "/"
+@using HabitKitClone.Services
+@using HabitKitClone.DTOs
+@using HabitKitClone.Resources
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using System.Globalization
+@inject IHabitService HabitService
+@inject UserContextService UserContext
+@inject IStringLocalizer<SharedResource> Localizer
+@attribute [Authorize]
+
+<PageTitle>HabitKit</PageTitle>
+
+<div class="habitkit-container">
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <h1 class="app-title">HabitKit</h1>
+            <div class="header-actions">
+                <button class="btn-add-habit" @onclick="ShowAddHabitModal">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner"></div>
+        </div>
+    }
+    else if (!habits.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h2>No habits yet</h2>
+            <p>Create your first habit to start tracking your progress</p>
+            <button class="btn-primary" @onclick="ShowAddHabitModal">
+                <i class="fas fa-plus"></i> Add Habit
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Habits Grid -->
+        <div class="habits-grid">
+            @foreach (var habit in habits)
+            {
+                <div class="habit-card" style="--habit-color: @habit.Color;">
+                    <div class="habit-header">
+                        <div class="habit-icon">@habit.Icon</div>
+                        <div class="habit-info">
+                            <h3 class="habit-name">@habit.Name</h3>
+                            @if (!string.IsNullOrEmpty(habit.Description))
+                            {
+                                <p class="habit-description">@habit.Description</p>
+                            }
+                        </div>
+                        <div class="habit-actions">
+                            <button class="btn-edit" @onclick="() => EditHabit(habit.Id)" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-delete" @onclick="() => DeleteHabit(habit.Id)" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- GitHub-style contribution graph -->
+                    <div class="contribution-graph">
+                        <div class="graph-header">
+                            <span class="streak-info">@habit.CurrentStreak day streak</span>
+                            <span class="completion-rate">@habit.CompletionRate% completion rate</span>
+                        </div>
+                        <div class="graph-container">
+                            <div class="contribution-calendar">
+                                @for (int week = 0; week < 53; week++)
+                                {
+                                    <div class="contribution-week">
+                                        @for (int day = 0; day < 7; day++)
+                                        {
+                                            var date = GetDateForCell(week, day);
+                                            var level = GetContributionLevel(habit.Id, date);
+                                            <div class="contribution-cell @GetContributionClass(level)" 
+                                                 @onclick="() => ToggleHabitCompletion(habit.Id, date)"
+                                                 title="@GetTooltipText(habit.Name, date, level)">
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="graph-legend">
+                            <span>Less</span>
+                            <div class="legend-cells">
+                                <div class="legend-cell level-0"></div>
+                                <div class="legend-cell level-1"></div>
+                                <div class="legend-cell level-2"></div>
+                                <div class="legend-cell level-3"></div>
+                                <div class="legend-cell level-4"></div>
+                            </div>
+                            <span>More</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<HabitDto> habits = new();
+    private bool isLoading = true;
+    private Dictionary<int, Dictionary<DateOnly, int>> habitGraphData = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHabits();
+    }
+
+    private async Task LoadHabits()
+    {
+        isLoading = true;
+        var userId = await UserContext.GetCurrentUserIdAsync();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            habits = (await HabitService.GetUserHabitsAsync(userId)).ToList();
+            
+            // Load graph data for all habits
+            foreach (var habit in habits)
+            {
+                await GetHabitGraphData(habit.Id);
+            }
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task<Dictionary<DateOnly, int>> GetHabitGraphData(int habitId)
+    {
+        if (!habitGraphData.ContainsKey(habitId))
+        {
+            var userId = await UserContext.GetCurrentUserIdAsync();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var completions = await HabitService.GetHabitCompletionsForYearAsync(userId);
+                var data = new Dictionary<DateOnly, int>();
+                
+                // Get completions for the past year
+                var startDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-365));
+                var endDate = DateOnly.FromDateTime(DateTime.Today);
+                
+                for (var date = startDate; date <= endDate; date = date.AddDays(1))
+                {
+                    var dayCompletions = completions.GetValueOrDefault(date, new List<HabitCompletionDto>());
+                    var habitCompletions = dayCompletions.Where(c => c.HabitId == habitId).Sum(c => c.Count);
+                    data[date] = habitCompletions;
+                }
+                
+                habitGraphData[habitId] = data;
+            }
+        }
+        
+        return habitGraphData.GetValueOrDefault(habitId, new Dictionary<DateOnly, int>());
+    }
+
+    private DateOnly GetDateForCell(int week, int day)
+    {
+        var today = DateTime.Today;
+        var startOfYear = new DateTime(today.Year, 1, 1);
+        var startOfWeek = startOfYear.AddDays(-(int)startOfYear.DayOfWeek);
+        var cellDate = startOfWeek.AddDays(week * 7 + day);
+        return DateOnly.FromDateTime(cellDate);
+    }
+
+    private int GetContributionLevel(int habitId, DateOnly date)
+    {
+        var graphData = habitGraphData.GetValueOrDefault(habitId, new Dictionary<DateOnly, int>());
+        if (!graphData.ContainsKey(date))
+            return 0;
+        
+        var count = graphData[date];
+        return count switch
+        {
+            0 => 0,
+            1 => 1,
+            2 => 2,
+            3 => 3,
+            _ => 4
+        };
+    }
+
+    private string GetContributionClass(int level)
+    {
+        return level switch
+        {
+            0 => "level-0",
+            1 => "level-1",
+            2 => "level-2",
+            3 => "level-3",
+            4 => "level-4",
+            _ => "level-0"
+        };
+    }
+
+    private string GetTooltipText(string habitName, DateOnly date, int level)
+    {
+        if (level == 0)
+            return $"{habitName}: No activity on {date:MMM d, yyyy}";
+        
+        var count = level switch
+        {
+            1 => "1 time",
+            2 => "2 times",
+            3 => "3 times",
+            4 => "4+ times",
+            _ => "0 times"
+        };
+        
+        return $"{habitName}: {count} on {date:MMM d, yyyy}";
+    }
+
+    private void ShowAddHabitModal()
+    {
+        // TODO: Implement add habit modal
+    }
+
+    private async Task EditHabit(int habitId)
+    {
+        // TODO: Implement edit habit modal
+    }
+
+    private async Task DeleteHabit(int habitId)
+    {
+        var userId = await UserContext.GetCurrentUserIdAsync();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var success = await HabitService.DeleteHabitAsync(habitId, userId);
+            if (success)
+            {
+                await LoadHabits();
+            }
+        }
+    }
+
+    private async Task ToggleHabitCompletion(int habitId, DateOnly date)
+    {
+        var userId = await UserContext.GetCurrentUserIdAsync();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            await HabitService.ToggleHabitCompletionAsync(habitId, date, userId);
+            habitGraphData.Clear(); // Clear cache to refresh data
+            await LoadHabits();
+        }
+    }
+}

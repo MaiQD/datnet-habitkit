@@ -1,0 +1,185 @@
+@page "/statistics"
+@using HabitKitClone.Services
+@using HabitKitClone.DTOs
+@using HabitKitClone.Resources
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IHabitService HabitService
+@inject IStringLocalizer<SharedResource> Localizer
+@attribute [Authorize]
+
+<PageTitle>@Localizer["Statistics"]</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">@Localizer["Statistics"]</h1>
+        </div>
+    </div>
+
+    @if (habits == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!habits.Any())
+    {
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-chart-bar fa-4x text-muted"></i>
+            </div>
+            <h3 class="text-muted">@Localizer["NoDataYet"]</h3>
+            <p class="text-muted">@Localizer["CreateHabitsToSeeStats"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Overall Statistics -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">@Localizer["OverallStatistics"]</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-primary">@totalHabits</div>
+                                    <div class="stat-label">@Localizer["TotalHabits"]</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-success">@totalCompletions</div>
+                                    <div class="stat-label">@Localizer["TotalCompletions"]</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-info">@averageCompletionRate.ToString("F1")%</div>
+                                    <div class="stat-label">@Localizer["AverageCompletionRate"]</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-warning">@longestStreak</div>
+                                    <div class="stat-label">@Localizer["LongestStreak"]</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Habit Performance Chart -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">@Localizer["HabitPerformance"]</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="habitPerformanceChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Habit Statistics -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">@Localizer["IndividualHabitStats"]</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>@Localizer["HabitName"]</th>
+                                        <th class="text-center">@Localizer["CurrentStreak"]</th>
+                                        <th class="text-center">@Localizer["LongestStreak"]</th>
+                                        <th class="text-center">@Localizer["CompletionRate"]</th>
+                                        <th class="text-center">@Localizer["TotalCompletions"]</th>
+                                        <th class="text-center">@Localizer["Frequency"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var habit in habits)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="habit-icon me-2">@habit.Icon</span>
+                                                    <span style="color: @habit.Color;">@habit.Name</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary">@habit.CurrentStreak</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success">@habit.LongestStreak</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="progress" style="width: 100px; height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: @habit.CompletionRate%"
+                                                         aria-valuenow="@habit.CompletionRate" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                        @habit.CompletionRate.ToString("F1")%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-info">@habit.TotalCompletions</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary">@Localizer[habit.Frequency.ToString()]</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<HabitDto>? habits;
+    private int totalHabits;
+    private int totalCompletions;
+    private double averageCompletionRate;
+    private int longestStreak;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatistics();
+    }
+
+    private async Task LoadStatistics()
+    {
+        var userId = GetCurrentUserId();
+        habits = (await HabitService.GetUserHabitsAsync(userId)).ToList();
+        
+        if (habits.Any())
+        {
+            totalHabits = habits.Count;
+            totalCompletions = habits.Sum(h => h.TotalCompletions);
+            averageCompletionRate = habits.Average(h => h.CompletionRate);
+            longestStreak = habits.Max(h => h.LongestStreak);
+        }
+    }
+
+    private string GetCurrentUserId()
+    {
+        // TODO: Get current user ID from authentication context
+        return "temp-user-id";
+    }
+}
