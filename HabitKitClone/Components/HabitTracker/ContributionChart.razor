@@ -35,17 +35,6 @@
             }
         </div>
     </div>
-    
-    <div class="chart-legend">
-        <span class="legend-text">Less</span>
-        <div class="legend-cells">
-            @for (int i = 0; i < 5; i++)
-            {
-                <div class="legend-cell level-@i" style="background-color: @Color; opacity: @GetOpacityForLevel(i)"></div>
-            }
-        </div>
-        <span class="legend-text">More</span>
-    </div>
 </div>
 
 @code {

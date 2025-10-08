@@ -1445,3 +1445,243 @@ a:hover, .btn-link:hover {
     color: rgba(255, 255, 255, 0.8);
     font-size: 1.125rem;
 }
+
+/* Global View Controls */
+.global-view-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+}
+
+.view-button {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+.view-button:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.view-button.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.view-button i {
+    font-size: 0.875rem;
+}
+
+/* Habit Card Updates */
+.habit-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.habit-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.habit-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.habit-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.habit-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.habit-description {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.habit-actions {
+    flex-shrink: 0;
+}
+
+.completion-checkbox {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.completion-checkbox:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.completion-checkbox.completed {
+    background: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+}
+
+.completion-checkbox i {
+    font-size: 0.875rem;
+}
+
+.habit-progress {
+    margin-top: 0.75rem;
+}
+
+.progress-summary {
+    margin-bottom: 0.75rem;
+}
+
+.streak-count {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Contribution Chart Updates */
+.contribution-chart {
+    margin-top: 0.75rem;
+}
+
+.chart-container {
+    overflow-x: auto;
+    padding: 0.5rem 0;
+}
+
+.chart-grid {
+    display: flex;
+    gap: 2px;
+    min-width: max-content;
+}
+
+.chart-week {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chart-cell {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chart-cell:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 1px var(--text-primary);
+}
+
+/* Icon Button Updates */
+.icon-button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+.icon-button:hover:not(:disabled) {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.icon-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.add-button {
+    background: var(--success-color);
+    color: white;
+}
+
+.add-button:hover:not(:disabled) {
+    background: var(--success-hover);
+}
+
+/* Category Filter Updates */
+.category-filters {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.category-filter {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.category-filter:hover {
+    background: var(--hover-bg);
+}
+
+.category-filter.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}

@@ -20,8 +20,8 @@
             <span class="pro-badge">PRO</span>
         </div>
         <div class="header-right">
-            <button class="icon-button" aria-label="Statistics">
-                <i class="fas fa-chart-bar"></i>
+            <button class="icon-button" aria-label="List View">
+                <i class="fas fa-list"></i>
             </button>
             <button class="icon-button add-button" aria-label="Add Habit" @onclick="ShowAddHabitModal">
                 <i class="fas fa-plus"></i>
@@ -66,6 +66,28 @@
             </div>
         }
     </main>
+
+    <!-- Global View Controls -->
+    @if (FilteredHabits.Any())
+    {
+        <div class="global-view-controls">
+            <button class="view-button @(CurrentView == "grid" ? "active" : "")" 
+                    aria-label="Grid view" 
+                    @onclick="SetGridView">
+                <i class="fas fa-th"></i>
+            </button>
+            <button class="view-button @(CurrentView == "list" ? "active" : "")" 
+                    aria-label="List view" 
+                    @onclick="SetListView">
+                <i class="fas fa-list"></i>
+            </button>
+            <button class="view-button @(CurrentView == "calendar" ? "active" : "")" 
+                    aria-label="Calendar view" 
+                    @onclick="SetCalendarView">
+                <i class="fas fa-calendar"></i>
+            </button>
+        </div>
+    }
 </div>
 
 <!-- Add/Edit Habit Modal -->
@@ -78,6 +100,7 @@
 
 @code {
     private string SelectedCategory = "all";
+    private string CurrentView = "grid";
     private bool ShowModal = false;
     private HabitModel? EditingHabit;
     
@@ -104,6 +127,27 @@
     {
         SelectedCategory = category;
         StateHasChanged();
+    }
+
+    private void SetViewMode(string viewMode)
+    {
+        CurrentView = viewMode;
+        StateHasChanged();
+    }
+
+    private void SetGridView()
+    {
+        SetViewMode("grid");
+    }
+
+    private void SetListView()
+    {
+        SetViewMode("list");
+    }
+
+    private void SetCalendarView()
+    {
+        SetViewMode("calendar");
     }
 
     private void ShowAddHabitModal()
@@ -187,7 +231,7 @@
                 Title = "Exercise",
                 Description = "Try to do some kind of activities a day. Li...",
                 Category = "health",
-                Icon = "🏋️",
+                Icon = "🏆",
                 Color = "#27ae60",
                 IsCompletedToday = true,
                 StreakCount = 3,
