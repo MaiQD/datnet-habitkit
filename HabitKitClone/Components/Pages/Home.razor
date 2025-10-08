@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/home"
 @using HabitKitClone.Services
 @using HabitKitClone.DTOs
 @using HabitKitClone.Resources
@@ -224,7 +224,7 @@
     private void ShowAddHabitModal()
     {
         // TODO: Implement add habit modal
-        NavigationManager.NavigateTo("/habit-tracker");
+        NavigationManager.NavigateTo("/");
     }
 
     private async Task ToggleHabitCompletion(HabitDto habit)
