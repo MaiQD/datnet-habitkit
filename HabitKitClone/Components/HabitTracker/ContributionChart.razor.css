@@ -5,6 +5,26 @@
     border-radius: 8px;
     padding: 0.75rem;
     border: 1px solid #21262d;
+    overflow: hidden; /* Prevent chart overflow */
+}
+
+.chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden; /* Prevent wrapper overflow */
+}
+
+.chart-wrapper::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px; /* Width of label column */
+    background-color: #0d1117;
+    z-index: 5;
+    border-right: 1px solid #21262d;
 }
 
 .chart-container {
@@ -14,6 +34,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: #30363d transparent;
+    width: 100%;
 }
 
 .chart-container::-webkit-scrollbar {
@@ -35,16 +56,47 @@
 
 .chart-grid {
     display: flex;
+    flex-direction: column;
     gap: 2px;
     min-width: max-content;
     padding: 0.25rem 0;
 }
 
-.chart-week {
+/* Mobile First - Base styles for mobile */
+.chart-row {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    height: 10px;
+    margin-bottom: 2px;
+    min-height: 10px;
+    position: relative;
+}
+
+.day-label {
+    width: 20px;
+    height: 10px;
+    font-size: 0.625rem;
+    color: #8b949e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    line-height: 1;
+    flex-shrink: 0;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background-color: transparent; /* Let the background column handle the background */
+    padding: 0 2px;
+    margin-right: 5px;
+}
+
+.day-cells {
+    display: flex;
     gap: 2px;
     flex-shrink: 0;
+    flex-wrap: nowrap;
 }
 
 .chart-cell {
@@ -55,6 +107,9 @@
     transition: all 0.2s ease;
     border: 1px solid transparent;
     position: relative;
+    flex-shrink: 0;
+    min-width: 8px;
+    box-sizing: border-box;
 }
 
 .chart-cell:hover {
@@ -66,28 +121,6 @@
 .chart-cell:focus {
     outline: 2px solid #8b5cf6;
     outline-offset: 1px;
-}
-
-/* Contribution Levels */
-.level-0 {
-    background-color: #21262d;
-    border-color: #30363d;
-}
-
-.level-1 {
-    opacity: 0.3;
-}
-
-.level-2 {
-    opacity: 0.5;
-}
-
-.level-3 {
-    opacity: 0.7;
-}
-
-.level-4 {
-    opacity: 1.0;
 }
 
 /* Chart Legend */
@@ -116,16 +149,66 @@
     border: 1px solid #30363d;
 }
 
+/* Mobile specific fixes */
+@media (max-width: 374px) {
+    .chart-wrapper::before {
+        width: 30px;
+    }
+    
+    .chart-row {
+        height: 10px;
+        margin-bottom: 2px;
+        min-height: 10px;
+    }
+    
+    .chart-cell {
+        width: 8px;
+        height: 8px;
+        min-width: 8px;
+        flex-shrink: 0;
+    }
+    
+    .day-label {
+        width: 20px;
+        height: 10px;
+        font-size: 0.625rem;
+        margin-right: 5px !important;
+    }
+    
+    .day-cells {
+        gap: 2px;
+        flex-wrap: nowrap;
+    }
+}
+
 /* Responsive Design */
 @media (min-width: 375px) {
+    .chart-wrapper::before {
+        width: 34px;
+    }
+    
+    .chart-row {
+        height: 12px;
+        margin-bottom: 2px;
+        min-height: 12px;
+    }
+    
     .chart-cell {
         width: 10px;
         height: 10px;
+        min-width: 10px;
     }
     
     .legend-cell {
         width: 10px;
         height: 10px;
+    }
+    
+    .day-label {
+        width: 24px;
+        height: 10px;
+        font-size: 0.75rem;
+        margin-right: 5px !important;
     }
 }
 
@@ -134,9 +217,20 @@
         padding: 1rem;
     }
     
+    .chart-wrapper::before {
+        width: 38px;
+    }
+    
+    .chart-row {
+        height: 14px;
+        margin-bottom: 2px;
+        min-height: 14px;
+    }
+    
     .chart-cell {
         width: 12px;
         height: 12px;
+        min-width: 12px;
     }
     
     .legend-cell {
@@ -147,30 +241,60 @@
     .chart-legend {
         font-size: 0.75rem;
     }
+    
+    .day-label {
+        width: 28px;
+        height: 12px;
+        font-size: 0.75rem;
+        margin-right: 5px !important;
+    }
 }
 
 @media (min-width: 1024px) {
+    .chart-wrapper::before {
+        width: 42px;
+    }
+    
+    .chart-row {
+        height: 16px;
+        margin-bottom: 2px;
+        min-height: 16px;
+    }
+    
     .chart-cell {
         width: 14px;
         height: 14px;
+        min-width: 14px;
     }
     
     .legend-cell {
         width: 14px;
         height: 14px;
     }
+    
+    .day-label {
+        width: 32px;
+        height: 14px;
+        font-size: 0.875rem;
+        margin-right: 5px !important;
+    }
 }
 
-/* Touch-friendly improvements */
-@media (hover: none) and (pointer: coarse) {
+/* Touch-friendly improvements - Mobile first with !important */
+@media (hover: none) and (pointer: coarse) and (max-width: 374px) {
+    .chart-row {
+        height: 10px !important;
+        margin-bottom: 2px !important;
+        min-height: 10px !important;
+    }
+    
     .chart-cell {
-        width: 12px;
-        height: 12px;
-        min-width: 44px;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 8px !important;
+        height: 8px !important;
+        min-width: 8px !important;
+        flex-shrink: 0 !important;
+        display: block !important;
+        position: relative !important;
     }
     
     .chart-cell::after {
@@ -183,5 +307,50 @@
         height: 8px;
         background-color: inherit;
         border-radius: 2px;
+        pointer-events: none;
+    }
+    
+    .day-label {
+        width: 20px !important;
+        height: 10px !important;
+        font-size: 0.625rem !important;
+        margin-right: 5px !important;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) and (min-width: 375px) {
+    .chart-row {
+        height: 12px !important;
+        margin-bottom: 2px !important;
+        min-height: 12px !important;
+    }
+    
+    .chart-cell {
+        width: 10px !important;
+        height: 10px !important;
+        min-width: 10px !important;
+        flex-shrink: 0 !important;
+        display: block !important;
+        position: relative !important;
+    }
+    
+    .chart-cell::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        background-color: inherit;
+        border-radius: 2px;
+        pointer-events: none;
+    }
+    
+    .day-label {
+        width: 24px !important;
+        height: 10px !important;
+        font-size: 0.75rem !important;
+        margin-right: 5px !important;
     }
 }

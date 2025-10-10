@@ -1264,6 +1264,14 @@ a:hover, .btn-link:hover {
         width: 44px;
         height: 44px;
     }
+    
+    /* Override for contribution chart cells to prevent 44px sizing */
+    .contribution-chart .chart-cell {
+        min-height: unset !important;
+        min-width: unset !important;
+        width: 8px !important;
+        height: 8px !important;
+    }
 }
 
 /* Settings Page Styles */
@@ -1450,39 +1458,46 @@ a:hover, .btn-link:hover {
 .global-view-controls {
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    background: var(--bg-primary);
+    gap: 0.75rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a1a 100%);
     border-top: 1px solid var(--border-color);
     position: sticky;
     bottom: 0;
     z-index: 100;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .view-button {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     color: var(--text-muted);
-    padding: 0.5rem;
-    border-radius: 6px;
+    padding: 0.75rem;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 52px;
+    min-height: 52px;
+    font-size: 1.125rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .view-button:hover {
-    background: var(--hover-bg);
-    color: var(--text-primary);
+    background: #30363d;
+    border-color: #8b5cf6;
+    color: #c9d1d9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
 }
 
 .view-button.active {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    border-color: #8b5cf6;
     color: white;
-    border-color: var(--primary-color);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
 }
 
 .view-button i {

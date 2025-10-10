@@ -1,9 +1,16 @@
 @page "/"
+@page "/habit-tracker"
 @using HabitKitClone.Components.HabitTracker
 @using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
 @using HabitKitClone.Resources
+@using HabitKitClone.Services
 @inject IStringLocalizer<SharedResource> Localizer
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject IHabitService HabitService
+@inject UserContextService UserContextService
+@rendermode InteractiveServer
 
 <PageTitle>HabitKit - Track Your Habits</PageTitle>
 
@@ -11,7 +18,7 @@
     <!-- Header -->
     <header class="app-header">
         <div class="header-left">
-            <button class="icon-button" aria-label="Settings">
+            <button class="icon-button" aria-label="Settings" @onclick="NavigateToSettings">
                 <i class="fas fa-cog"></i>
             </button>
         </div>
@@ -49,7 +56,8 @@
             @foreach (var habit in FilteredHabits)
             {
                 <HabitCard Habit="habit" 
-                           OnToggleCompletion="ToggleHabitCompletion"
+                           OnIncrementCompletion="IncrementHabitCompletion"
+                           OnDecrementCompletion="DecrementHabitCompletion"
                            OnEditHabit="EditHabit"
                            OnDeleteHabit="DeleteHabit" />
             }
@@ -162,18 +170,85 @@
         ShowModal = true;
     }
 
-    private void ToggleHabitCompletion(HabitModel habit)
+    private async Task IncrementHabitCompletion(HabitModel habit)
     {
-        habit.IsCompletedToday = !habit.IsCompletedToday;
-        if (habit.IsCompletedToday)
+        try
         {
-            habit.StreakCount++;
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            
+            var newCount = await HabitService.IncrementHabitCompletionAsync(habit.Id, today, userId);
+            habit.TodayCount = newCount;
+            
+            // Update streak count if this is the first completion today
+            if (newCount == 1)
+            {
+                habit.StreakCount++;
+            }
+            
+            // Refresh contribution data
+            await RefreshHabitData(habit);
+            StateHasChanged();
         }
-        else
+        catch (Exception ex)
         {
-            habit.StreakCount = Math.Max(0, habit.StreakCount - 1);
+            Console.WriteLine($"Error incrementing habit completion: {ex.Message}");
         }
-        StateHasChanged();
+    }
+
+    private async Task DecrementHabitCompletion(HabitModel habit)
+    {
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            
+            var newCount = await HabitService.DecrementHabitCompletionAsync(habit.Id, today, userId);
+            habit.TodayCount = newCount;
+            
+            // Update streak count if count goes to 0
+            if (newCount == 0)
+            {
+                habit.StreakCount = Math.Max(0, habit.StreakCount - 1);
+            }
+            
+            // Refresh contribution data
+            await RefreshHabitData(habit);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error decrementing habit completion: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshHabitData(HabitModel habit)
+    {
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var completions = await HabitService.GetHabitCompletionsForYearAsync(userId);
+            
+            // Update contribution data for this habit
+            var habitCompletions = completions.Values
+                .SelectMany(list => list)
+                .Where(hc => hc.HabitId == habit.Id)
+                .ToList();
+            
+            habit.ContributionData = habitCompletions
+                .Select(hc => new ContributionDay
+                {
+                    Date = hc.CompletionDate.ToDateTime(TimeOnly.MinValue),
+                    Level = hc.Count,
+                    Color = habit.Color,
+                    Count = hc.Count
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error refreshing habit data: {ex.Message}");
+        }
     }
 
     private void DeleteHabit(HabitModel habit)
@@ -206,6 +281,12 @@
         EditingHabit = null;
     }
 
+    private void NavigateToSettings()
+    {
+        Console.WriteLine("100");
+        NavigationManager.NavigateTo("/settings");
+    }
+
     private async Task LoadMockData()
     {
         // Simulate loading delay
@@ -221,7 +302,7 @@
                 Category = "work",
                 Icon = "💻",
                 Color = "#e74c3c",
-                IsCompletedToday = true,
+                TodayCount = 1,
                 StreakCount = 5,
                 ContributionData = GenerateContributionData("#e74c3c")
             },
@@ -233,7 +314,7 @@
                 Category = "health",
                 Icon = "🏆",
                 Color = "#27ae60",
-                IsCompletedToday = true,
+                TodayCount = 1,
                 StreakCount = 3,
                 ContributionData = GenerateContributionData("#27ae60")
             },
@@ -245,7 +326,7 @@
                 Category = "study",
                 Icon = ">_",
                 Color = "#e74c3c",
-                IsCompletedToday = true,
+                TodayCount = 1,
                 StreakCount = 7,
                 ContributionData = GenerateContributionData("#e74c3c")
             },
@@ -257,7 +338,7 @@
                 Category = "study",
                 Icon = "📚",
                 Color = "#f39c12",
-                IsCompletedToday = true,
+                TodayCount = 1,
                 StreakCount = 2,
                 ContributionData = GenerateContributionData("#f39c12")
             }

@@ -10,6 +10,8 @@ public interface IHabitService
     Task<HabitDto?> UpdateHabitAsync(int habitId, UpdateHabitDto updateHabitDto, string userId);
     Task<bool> DeleteHabitAsync(int habitId, string userId);
     Task<bool> ToggleHabitCompletionAsync(int habitId, DateOnly date, string userId);
+    Task<int> IncrementHabitCompletionAsync(int habitId, DateOnly date, string userId);
+    Task<int> DecrementHabitCompletionAsync(int habitId, DateOnly date, string userId);
     Task<HabitCompletionDto?> GetHabitCompletionAsync(int habitId, DateOnly date, string userId);
     Task<HabitCompletionDto> CreateHabitCompletionAsync(CreateHabitCompletionDto createCompletionDto, string userId);
     Task<HabitCompletionDto?> UpdateHabitCompletionAsync(int completionId, UpdateHabitCompletionDto updateCompletionDto, string userId);

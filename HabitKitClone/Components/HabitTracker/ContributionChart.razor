@@ -1,38 +1,43 @@
 @using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
 @using HabitKitClone.Resources
+@inject IJSRuntime JSRuntime
+@inject IStringLocalizer<SharedResource> Localizer
 
 <div class="contribution-chart" role="img" aria-label="Habit contribution chart for the past year">
-    <div class="chart-container">
-        <div class="chart-grid">
-            @{
-                var weeks = Data.GroupBy(d => GetWeekOfYear(d.Date)).OrderBy(g => g.Key).ToList();
-            }
-            
-            @for (int week = 0; week < 53; week++)
-            {
-                <div class="chart-week">
-                    @{
-                        var weekData = weeks.FirstOrDefault(w => w.Key == week)?.ToList() ?? new List<ContributionDay>();
-                        var daysInWeek = 7;
-                    }
-                    
-                    @for (int day = 0; day < daysInWeek; day++)
-                    {
-                        var dayData = weekData.FirstOrDefault(d => (int)d.Date.DayOfWeek == day);
-                        var level = dayData?.Level ?? 0;
-                        var opacity = GetOpacityForLevel(level);
-                        
-                        <div class="chart-cell level-@level"
-                             style="background-color: @Color; opacity: @opacity;"
-                             title="@(dayData?.Date.ToString("MMM dd, yyyy") ?? "")"
-                             role="button"
-                             tabindex="0"
-                             @onclick="() => OnCellClick.InvokeAsync(dayData)"
-                             @onkeypress="@(async (e) => { if (e.Key == "Enter" || e.Key == " ") { await OnCellClick.InvokeAsync(dayData); } })">
+    <div class="chart-wrapper">
+        <div class="chart-container" @ref="chartContainer">
+            <div class="chart-grid">
+                @{
+                    var weeks = Data.GroupBy(d => GetWeekOfYear(d.Date)).OrderBy(g => g.Key).ToList();
+                }
+                
+                @for (int day = 0; day < 7; day++)
+                {
+                    var dayName = GetDayName(day);
+                    <div class="chart-row">
+                        <div class="day-label">@Localizer[dayName]</div>
+                        <div class="day-cells">
+                            @for (int week = 0; week < 53; week++)
+                            {
+                                var weekData = weeks.FirstOrDefault(w => w.Key == week)?.ToList() ?? new List<ContributionDay>();
+                                var dayData = weekData.FirstOrDefault(d => (int)d.Date.DayOfWeek == day);
+                                var count = dayData?.Count ?? 0;
+                                var opacity = GetOpacityForCount(count);
+                                
+                                <div class="chart-cell"
+                                     style="background-color: @Color; opacity: @opacity;"
+                                     title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
+                                     role="button"
+                                     tabindex="0"
+                                     @onclick="() => OnCellClick.InvokeAsync(dayData)"
+                                     @onkeypress="@(async (e) => { if (e.Key == "Enter" || e.Key == " ") { await OnCellClick.InvokeAsync(dayData); } })">
+                                </div>
+                            }
                         </div>
-                    }
-                </div>
-            }
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -43,22 +48,64 @@
     [Parameter] public int HabitId { get; set; }
     [Parameter] public EventCallback<ContributionDay?> OnCellClick { get; set; }
 
+    private ElementReference chartContainer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ScrollToCurrentDay();
+        }
+    }
+
+    private async Task ScrollToCurrentDay()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("scrollChartToEnd", chartContainer);
+        }
+        catch
+        {
+            // Ignore JS errors - chart will still work without auto-scroll
+        }
+    }
+
+    private string GetDayName(int dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            0 => "Sun",
+            1 => "Mon", 
+            2 => "Tue",
+            3 => "Wed",
+            4 => "Thu",
+            5 => "Fri",
+            6 => "Sat",
+            _ => "Sun"
+        };
+    }
+
     private int GetWeekOfYear(DateTime date)
     {
         var calendar = System.Globalization.CultureInfo.CurrentCulture.Calendar;
         return calendar.GetWeekOfYear(date, System.Globalization.CalendarWeekRule.FirstDay, DayOfWeek.Sunday);
     }
 
-    private double GetOpacityForLevel(int level)
+    private double GetOpacityForCount(int count)
     {
-        return level switch
+        return count switch
         {
-            0 => 0.1,
+            0 => 0.1,  // Empty/inactive state, shows faint habit color
             1 => 0.3,
-            2 => 0.5,
-            3 => 0.7,
-            4 => 1.0,
-            _ => 0.1
+            2 => 0.4,
+            3 => 0.5,
+            4 => 0.6,
+            5 => 0.7,
+            6 => 0.7,
+            7 => 0.85,
+            8 => 0.85,
+            9 => 0.85,
+            _ => 1.0   // Count 10+: full color
         };
     }
 }

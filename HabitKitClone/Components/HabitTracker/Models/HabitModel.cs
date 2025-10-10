@@ -8,7 +8,7 @@ public class HabitModel
     public string Category { get; set; } = "study";
     public string Icon { get; set; } = "📝";
     public string Color { get; set; } = "#238636";
-    public bool IsCompletedToday { get; set; }
+    public int TodayCount { get; set; }
     public int StreakCount { get; set; }
     public List<ContributionDay> ContributionData { get; set; } = new();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

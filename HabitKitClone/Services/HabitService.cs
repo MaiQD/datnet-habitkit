@@ -123,6 +123,62 @@ public class HabitService : IHabitService
         return true;
     }
 
+    public async Task<int> IncrementHabitCompletionAsync(int habitId, DateOnly date, string userId)
+    {
+        var existingCompletion = await _context.HabitCompletions
+            .FirstOrDefaultAsync(hc => hc.HabitId == habitId && hc.CompletionDate == date && hc.UserId == userId);
+
+        if (existingCompletion != null)
+        {
+            existingCompletion.Count++;
+            existingCompletion.CompletedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            var completion = new HabitCompletion
+            {
+                HabitId = habitId,
+                CompletionDate = date,
+                UserId = userId,
+                Count = 1,
+                CompletedAt = DateTime.UtcNow
+            };
+            _context.HabitCompletions.Add(completion);
+        }
+
+        await _context.SaveChangesAsync();
+        
+        // Return the new count
+        var updatedCompletion = await _context.HabitCompletions
+            .FirstOrDefaultAsync(hc => hc.HabitId == habitId && hc.CompletionDate == date && hc.UserId == userId);
+        
+        return updatedCompletion?.Count ?? 0;
+    }
+
+    public async Task<int> DecrementHabitCompletionAsync(int habitId, DateOnly date, string userId)
+    {
+        var existingCompletion = await _context.HabitCompletions
+            .FirstOrDefaultAsync(hc => hc.HabitId == habitId && hc.CompletionDate == date && hc.UserId == userId);
+
+        if (existingCompletion != null)
+        {
+            existingCompletion.Count--;
+            if (existingCompletion.Count <= 0)
+            {
+                _context.HabitCompletions.Remove(existingCompletion);
+                await _context.SaveChangesAsync();
+                return 0;
+            }
+            else
+            {
+                await _context.SaveChangesAsync();
+                return existingCompletion.Count;
+            }
+        }
+
+        return 0; // No completion exists, so count remains 0
+    }
+
     public async Task<HabitCompletionDto?> GetHabitCompletionAsync(int habitId, DateOnly date, string userId)
     {
         var completion = await _context.HabitCompletions

@@ -65,35 +65,56 @@
     gap: 0.5rem;
 }
 
-/* Completion Checkbox */
-.completion-checkbox {
+/* Completion Controls */
+.completion-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.completion-button {
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+    border-radius: 50%;
     border: 2px solid #30363d;
     background-color: #21262d;
-    color: white;
+    color: #8b949e;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
 }
 
-.completion-checkbox:hover {
+.completion-button:hover {
     border-color: #8b5cf6;
     background-color: #30363d;
+    color: #c9d1d9;
 }
 
-.completion-checkbox.completed {
-    background-color: #238636;
+.completion-button:active {
+    transform: scale(0.95);
+}
+
+.minus-button:hover {
+    border-color: #f85149;
+    background-color: rgba(248, 81, 73, 0.1);
+    color: #f85149;
+}
+
+.plus-button:hover {
     border-color: #238636;
+    background-color: rgba(35, 134, 54, 0.1);
+    color: #238636;
 }
 
-.completion-checkbox.completed:hover {
-    background-color: #2ea043;
-    border-color: #2ea043;
+.completion-count {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #c9d1d9;
+    min-width: 24px;
+    text-align: center;
 }
 
 /* Habit Progress */
@@ -165,10 +186,15 @@
         font-size: 1.25rem;
     }
     
-    .completion-checkbox {
+    .completion-button {
         width: 36px;
         height: 36px;
-        font-size: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .completion-count {
+        font-size: 1.125rem;
+        min-width: 28px;
     }
 }
 

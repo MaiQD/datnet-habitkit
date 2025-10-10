@@ -184,4 +184,31 @@
   <data name="ClearAllData" xml:space="preserve">
     <value>Clear All Data</value>
   </data>
+  <data name="NoHabitsYet" xml:space="preserve">
+    <value>No habits yet</value>
+  </data>
+  <data name="CreateFirstHabit" xml:space="preserve">
+    <value>Create your first habit to get started!</value>
+  </data>
+  <data name="Sun" xml:space="preserve">
+    <value>Sun</value>
+  </data>
+  <data name="Mon" xml:space="preserve">
+    <value>Mon</value>
+  </data>
+  <data name="Tue" xml:space="preserve">
+    <value>Tue</value>
+  </data>
+  <data name="Wed" xml:space="preserve">
+    <value>Wed</value>
+  </data>
+  <data name="Thu" xml:space="preserve">
+    <value>Thu</value>
+  </data>
+  <data name="Fri" xml:space="preserve">
+    <value>Fri</value>
+  </data>
+  <data name="Sat" xml:space="preserve">
+    <value>Sat</value>
+  </data>
 </root>

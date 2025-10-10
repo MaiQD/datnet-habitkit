@@ -11,14 +11,19 @@
             <p class="habit-description">@Habit.Description</p>
         </div>
         <div class="habit-actions">
-            <button class="completion-checkbox @(Habit.IsCompletedToday ? "completed" : "")"
-                    aria-label="@(Habit.IsCompletedToday ? "Mark as incomplete" : "Mark as complete")"
-                    @onclick="() => OnToggleCompletion.InvokeAsync(Habit)">
-                @if (Habit.IsCompletedToday)
-                {
-                    <i class="fas fa-check"></i>
-                }
-            </button>
+            <div class="completion-controls">
+                <button class="completion-button minus-button"
+                        aria-label="Decrement completion count"
+                        @onclick="() => OnDecrementCompletion.InvokeAsync(Habit)">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <span class="completion-count">@Habit.TodayCount</span>
+                <button class="completion-button plus-button"
+                        aria-label="Increment completion count"
+                        @onclick="() => OnIncrementCompletion.InvokeAsync(Habit)">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
         </div>
     </div>
     
@@ -35,7 +40,8 @@
 
 @code {
     [Parameter] public HabitModel Habit { get; set; } = new();
-    [Parameter] public EventCallback<HabitModel> OnToggleCompletion { get; set; }
+    [Parameter] public EventCallback<HabitModel> OnIncrementCompletion { get; set; }
+    [Parameter] public EventCallback<HabitModel> OnDecrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnEditHabit { get; set; }
     [Parameter] public EventCallback<HabitModel> OnDeleteHabit { get; set; }
 }
