@@ -26,7 +26,7 @@
                                 var opacity = GetOpacityForCount(count);
                                 
                                 <div class="chart-cell"
-                                     style="background-color: @Color; opacity: @opacity;"
+                                     style="background-color: @(string.IsNullOrEmpty(Color) ? "#238636" : Color) !important; opacity: @opacity !important;"
                                      title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
                                      role="button"
                                      tabindex="0"
@@ -95,17 +95,17 @@
     {
         return count switch
         {
-            0 => 0.1,  // Empty/inactive state, shows faint habit color
-            1 => 0.3,
-            2 => 0.4,
-            3 => 0.5,
-            4 => 0.6,
-            5 => 0.7,
-            6 => 0.7,
-            7 => 0.85,
-            8 => 0.85,
-            9 => 0.85,
-            _ => 1.0   // Count 10+: full color
+            0 => 0.0,  // Completely transparent for empty cells
+            1 => 0.4,  // Light opacity for single completion
+            2 => 0.5,  // Medium opacity for 2 completions
+            3 => 0.6,  // Medium-high opacity for 3 completions
+            4 => 0.7,  // High opacity for 4 completions
+            5 => 0.8,  // Very high opacity for 5 completions
+            6 => 0.8,  // Very high opacity for 6 completions
+            7 => 0.9,  // Almost full opacity for 7 completions
+            8 => 0.9,  // Almost full opacity for 8 completions
+            9 => 0.9,  // Almost full opacity for 9 completions
+            _ => 1.0   // Full opacity for 10+ completions
         };
     }
 }
