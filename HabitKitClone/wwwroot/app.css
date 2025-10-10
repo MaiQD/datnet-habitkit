@@ -1700,3 +1700,28 @@ a:hover, .btn-link:hover {
     color: white;
     border-color: var(--primary-color);
 }
+
+/* Logout Button Styling */
+.logout-item {
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.logout-item .settings-label {
+    color: #f85149;
+    font-weight: 600;
+}
+
+.logout-item:hover {
+    background: rgba(248, 81, 73, 0.1);
+}
+
+.logout-item:hover .settings-label {
+    color: #f85149;
+}
+
+.logout-item .settings-icon {
+    background: rgba(248, 81, 73, 0.2);
+    color: #f85149;
+}

@@ -5,11 +5,14 @@
 @using Microsoft.AspNetCore.Localization
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Identity
+@using HabitKitClone.Data
 @inject IStringLocalizer<SharedResource> Localizer
 @inject NavigationManager NavigationManager
 @inject IUserSettingsService UserSettingsService
 @inject UserContextService UserContext
 @inject IJSRuntime JSRuntime
+@inject SignInManager<ApplicationUser> SignInManager
 @attribute [Authorize]
 @rendermode InteractiveServer
 
@@ -98,6 +101,15 @@
                         <span class="settings-label">Reorder Habits</span>
                     </div>
                     <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+                
+                <div class="settings-item logout-item" @onclick="Logout">
+                    <div class="settings-item-left">
+                        <div class="settings-icon red">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="settings-label">Logout</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -276,5 +288,11 @@
     {
         // TODO: Open privacy policy
         Console.WriteLine("Open privacy policy");
+    }
+
+    private async Task Logout()
+    {
+        await SignInManager.SignOutAsync();
+        NavigationManager.NavigateTo("/login", true);
     }
 }

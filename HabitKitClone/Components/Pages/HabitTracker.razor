@@ -5,6 +5,8 @@
 @using Microsoft.AspNetCore.Components.Web
 @using HabitKitClone.Resources
 @using HabitKitClone.Services
+@using HabitKitClone.DTOs
+@using HabitKitClone.Models
 @inject IStringLocalizer<SharedResource> Localizer
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -128,7 +130,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadMockData();
+        await LoadHabits();
     }
 
     private void SelectCategory(string category)
@@ -251,28 +253,65 @@
         }
     }
 
-    private void DeleteHabit(HabitModel habit)
+    private async Task DeleteHabit(HabitModel habit)
     {
-        Habits.Remove(habit);
-        StateHasChanged();
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            await HabitService.DeleteHabitAsync(habit.Id, userId);
+            await LoadHabits();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting habit: {ex.Message}");
+        }
     }
 
-    private void SaveHabit(HabitModel habit)
+    private async Task SaveHabit(HabitModel habit)
     {
-        if (Habits.Contains(habit))
+        try
         {
-            // Update existing habit
-            var index = Habits.IndexOf(habit);
-            Habits[index] = habit;
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            
+            if (habit.Id > 0)
+            {
+                // Update existing habit
+                var updateHabitDto = new UpdateHabitDto
+                {
+                    Name = habit.Title,
+                    Description = habit.Description,
+                    Color = habit.Color,
+                    Icon = habit.Icon,
+                    Frequency = HabitFrequency.Daily, // Map from category or add frequency field
+                    TargetCount = 1,
+                    IsActive = true
+                };
+                await HabitService.UpdateHabitAsync(habit.Id, updateHabitDto, userId);
+            }
+            else
+            {
+                // Create new habit
+                var createHabitDto = new CreateHabitDto
+                {
+                    Name = habit.Title,
+                    Description = habit.Description,
+                    Color = habit.Color,
+                    Icon = habit.Icon,
+                    Frequency = HabitFrequency.Daily,
+                    TargetCount = 1,
+                    ReminderTime = new TimeOnly(9, 0)
+                };
+                await HabitService.CreateHabitAsync(createHabitDto, userId);
+            }
+            
+            // Reload habits from database
+            await LoadHabits();
+            ShowModal = false;
         }
-        else
+        catch (Exception ex)
         {
-            // Add new habit
-            habit.Id = Habits.Count + 1;
-            Habits.Add(habit);
+            Console.WriteLine($"Error saving habit: {ex.Message}");
         }
-        ShowModal = false;
-        StateHasChanged();
     }
 
     private void CancelEdit()
@@ -287,82 +326,90 @@
         NavigationManager.NavigateTo("/settings");
     }
 
-    private async Task LoadMockData()
+    private string MapFrequencyToCategory(HabitFrequency frequency)
     {
-        // Simulate loading delay
-        await Task.Delay(100);
-        
-        Habits = new List<HabitModel>
-        {
-            new()
-            {
-                Id = 1,
-                Title = "Work",
-                Description = "Mostly complete EH and GB works listed...",
-                Category = "work",
-                Icon = "💻",
-                Color = "#e74c3c",
-                TodayCount = 1,
-                StreakCount = 5,
-                ContributionData = GenerateContributionData("#e74c3c")
-            },
-            new()
-            {
-                Id = 2,
-                Title = "Exercise",
-                Description = "Try to do some kind of activities a day. Li...",
-                Category = "health",
-                Icon = "🏆",
-                Color = "#27ae60",
-                TodayCount = 1,
-                StreakCount = 3,
-                ContributionData = GenerateContributionData("#27ae60")
-            },
-            new()
-            {
-                Id = 3,
-                Title = "Leetcode | Tech Related",
-                Description = "Learning or resolving a Leetcode proble...",
-                Category = "study",
-                Icon = ">_",
-                Color = "#e74c3c",
-                TodayCount = 1,
-                StreakCount = 7,
-                ContributionData = GenerateContributionData("#e74c3c")
-            },
-            new()
-            {
-                Id = 4,
-                Title = "2nd Language",
-                Description = "can be English, Chinese",
-                Category = "study",
-                Icon = "📚",
-                Color = "#f39c12",
-                TodayCount = 1,
-                StreakCount = 2,
-                ContributionData = GenerateContributionData("#f39c12")
-            }
-        };
+        // Map frequency to category or add a Category property to Habit model
+        return "all"; // Default, can be enhanced later
     }
 
-    private List<ContributionDay> GenerateContributionData(string color)
+    private int CalculateStreak(int habitId, Dictionary<DateOnly, List<HabitCompletionDto>> completions)
+    {
+        int streak = 0;
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        
+        for (int i = 0; i < 365; i++)
+        {
+            var date = today.AddDays(-i);
+            if (completions.TryGetValue(date, out var dayCompletions) && 
+                dayCompletions.Any(c => c.HabitId == habitId && c.Count > 0))
+            {
+                streak++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        return streak;
+    }
+
+    private List<ContributionDay> BuildContributionData(int habitId, string color, 
+        Dictionary<DateOnly, List<HabitCompletionDto>> completions)
     {
         var data = new List<ContributionDay>();
-        var random = new Random();
-        var startDate = DateTime.Today.AddDays(-365);
+        var startDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-365));
         
         for (int i = 0; i < 365; i++)
         {
             var date = startDate.AddDays(i);
-            var level = random.Next(0, 5); // 0-4 levels
+            var count = 0;
+            
+            if (completions.TryGetValue(date, out var dayCompletions))
+            {
+                count = dayCompletions.FirstOrDefault(c => c.HabitId == habitId)?.Count ?? 0;
+            }
+            
             data.Add(new ContributionDay
             {
-                Date = date,
-                Level = level,
+                Date = date.ToDateTime(TimeOnly.MinValue),
+                Level = count,
+                Count = count,
                 Color = color
             });
         }
         
         return data;
+    }
+
+    private async Task LoadHabits()
+    {
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var habitDtos = await HabitService.GetUserHabitsAsync(userId);
+            var completions = await HabitService.GetHabitCompletionsForYearAsync(userId);
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            
+            Habits = habitDtos.Select(h => new HabitModel
+            {
+                Id = h.Id,
+                Title = h.Name,
+                Description = h.Description,
+                Category = MapFrequencyToCategory(h.Frequency),
+                Icon = h.Icon,
+                Color = h.Color,
+                TodayCount = completions.TryGetValue(today, out var todayCompletions) 
+                    ? todayCompletions.FirstOrDefault(c => c.HabitId == h.Id)?.Count ?? 0 
+                    : 0,
+                StreakCount = CalculateStreak(h.Id, completions),
+                ContributionData = BuildContributionData(h.Id, h.Color, completions)
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading habits: {ex.Message}");
+            Habits = new List<HabitModel>();
+        }
     }
 }
