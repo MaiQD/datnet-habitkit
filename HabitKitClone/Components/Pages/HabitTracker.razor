@@ -4,6 +4,7 @@
 @using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Components.Web
 @using HabitKitClone.Resources
+@using Microsoft.AspNetCore.Authorization
 @using HabitKitClone.Services
 @using HabitKitClone.DTOs
 @using HabitKitClone.Models
@@ -12,6 +13,7 @@
 @inject NavigationManager NavigationManager
 @inject IHabitService HabitService
 @inject UserContextService UserContextService
+@attribute [Authorize]
 @rendermode InteractiveServer
 
 <PageTitle>HabitKit - Track Your Habits</PageTitle>
