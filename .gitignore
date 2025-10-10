@@ -411,6 +411,13 @@ FodyWeavers.xsd
 # Built Visual Studio Code Extensions
 *.vsix
 
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
 # Windows Installer files from build outputs
 *.cab
 *.msi
