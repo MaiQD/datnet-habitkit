@@ -2,6 +2,7 @@
 @using HabitKitClone.Resources
 @using HabitKitClone.Services
 @using HabitKitClone.DTOs
+@using HabitKitClone.Utilities
 @inject IStringLocalizer<SharedResource> Localizer
 @inject IHabitService HabitService
 @inject UserContextService UserContextService
@@ -33,6 +34,7 @@
         @foreach (var day in CalendarDays)
         {
             <div class="calendar-cell @GetCellClasses(day)"
+                 style="@GetCellStyle(day)"
                  @onclick="@(day.IsFutureDate ? (() => {}) : (async () => await SelectDate(day.Date)))"
                  role="gridcell"
                  tabindex="@(day.IsFutureDate ? -1 : 0)"
@@ -229,6 +231,28 @@
         SelectedDate = date;
         await OnDateSelected.InvokeAsync(date);
         StateHasChanged();
+    }
+
+    private string GetCellStyle(CalendarDay day)
+    {
+        if (day.IsFutureDate)
+        {
+            return "background-color: var(--bg-tertiary); color: var(--text-muted);";
+        }
+        
+        if (day.IsToday)
+        {
+            return $"background-color: {HabitColor}; color: white;";
+        }
+        
+        if (day.CompletionCount > 0)
+        {
+            var opacity = Math.Min(0.3 + (day.CompletionCount * 0.1), 0.8);
+            var color = ColorUtils.HexToRgba(HabitColor, opacity);
+            return $"background-color: {color};";
+        }
+        
+        return "";
     }
 
     public class CalendarDay

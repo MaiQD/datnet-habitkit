@@ -1,6 +1,7 @@
 @using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Components.Web
 @using HabitKitClone.Resources
+@using HabitKitClone.Utilities
 @inject IJSRuntime JSRuntime
 @inject IStringLocalizer<SharedResource> Localizer
 
@@ -28,6 +29,7 @@
                                 @if (!isFuture)
                                 {
                                     <div class="chart-cell level-@GetLevelForCount(count)"
+                                         style="@GetCellStyle(count)"
                                          title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
                                          role="button"
                                          tabindex="0"
@@ -59,13 +61,8 @@
     
     protected override void OnParametersSet()
     {
-        var style = new System.Text.StringBuilder();
-        style.Append($"--chart-habit-color-level-0: var(--chart-future-color);");
-        style.Append($"--chart-habit-color-level-1: {HexToRgba(Color, 0.4)};");
-        style.Append($"--chart-habit-color-level-2: {HexToRgba(Color, 0.6)};");
-        style.Append($"--chart-habit-color-level-3: {HexToRgba(Color, 0.8)};");
-        style.Append($"--chart-habit-color-level-4: {HexToRgba(Color, 1.0)};");
-        ChartStyle = style.ToString();
+        // No longer using CSS variables, using inline styles instead
+        ChartStyle = "";
         base.OnParametersSet();
     }
 
@@ -90,32 +87,6 @@
         }
     }
     
-    private string HexToRgba(string hex, double opacity)
-    {
-        if (string.IsNullOrEmpty(hex) || !hex.StartsWith("#"))
-        {
-            hex = "#238636"; // Default color
-        }
-    
-        hex = hex.Length == 7 ? hex.Substring(1) : hex;
-    
-        if (hex.Length != 6)
-        {
-            return $"rgba(35, 134, 54, {opacity.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
-        }
-    
-        try 
-        {
-            var r = Convert.ToByte(hex.Substring(0, 2), 16);
-            var g = Convert.ToByte(hex.Substring(2, 2), 16);
-            var b = Convert.ToByte(hex.Substring(4, 2), 16);
-            return $"rgba({r}, {g}, {b}, {opacity.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
-        }
-        catch (Exception)
-        {
-            return $"rgba(35, 134, 54, {opacity.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
-        }
-    }
 
     private string GetDayName(int dayOfWeek)
     {
@@ -154,5 +125,27 @@
     {
         if (!date.HasValue) return false;
         return date.Value.Date > DateTime.Today;
+    }
+
+    private string GetCellStyle(int count)
+    {
+        var level = GetLevelForCount(count);
+        var opacity = level switch
+        {
+            0 => 0.0,
+            1 => 0.4,
+            2 => 0.6,
+            3 => 0.8,
+            4 => 1.0,
+            _ => 0.0
+        };
+        
+        if (level == 0)
+        {
+            return "background-color: var(--chart-future-color) !important;";
+        }
+        
+        var color = ColorUtils.HexToRgba(Color, opacity);
+        return $"background-color: {color} !important;";
     }
 }

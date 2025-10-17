@@ -68,7 +68,7 @@
             @foreach (var habit in FilteredHabits)
             {
                 <HabitCard Habit="habit" 
-                           ViewMode="CurrentView"
+                           ViewMode="@CurrentView"
                            OnIncrementCompletion="IncrementHabitCompletion"
                            OnDecrementCompletion="DecrementHabitCompletion"
                            OnEditHabit="EditHabit"

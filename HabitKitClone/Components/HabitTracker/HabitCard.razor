@@ -38,13 +38,13 @@
         @if (ViewMode == "calendar")
         {
             <HabitCalendar Habit="Habit" 
-                          HabitColor="Habit.Color" 
+                          HabitColor="@Habit.Color" 
                           OnDateSelected="OnCalendarDateSelected" />
         }
         else
         {
             <ContributionChart Data="Habit.ContributionData" 
-                              Color="Habit.Color" 
+                              Color="@Habit.Color" 
                               HabitId="Habit.Id"
                               OnCellClick="OnContributionChartClick" />
         }
@@ -54,6 +54,11 @@
 @code {
     [Parameter] public HabitModel Habit { get; set; } = new();
     [Parameter] public string ViewMode { get; set; } = "grid";
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
     [Parameter] public EventCallback<HabitModel> OnIncrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnDecrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnEditHabit { get; set; }

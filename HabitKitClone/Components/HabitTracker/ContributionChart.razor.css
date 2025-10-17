@@ -112,11 +112,20 @@
     box-sizing: border-box;
 }
 
-.contribution-chart .chart-cell.level-0 { background-color: var(--chart-habit-color-level-0) !important; }
-.contribution-chart .chart-cell.level-1 { background-color: var(--chart-habit-color-level-1) !important; }
-.contribution-chart .chart-cell.level-2 { background-color: var(--chart-habit-color-level-2) !important; }
-.contribution-chart .chart-cell.level-3 { background-color: var(--chart-habit-color-level-3) !important; }
-.contribution-chart .chart-cell.level-4 { background-color: var(--chart-habit-color-level-4) !important; }
+/* Chart cell colors - inline styles take precedence */
+.chart-cell {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    position: relative;
+    flex-shrink: 0;
+    min-width: 8px;
+    box-sizing: border-box;
+    /* Remove any background-color to let inline styles work */
+}
 
 .chart-cell-empty {
     width: 8px;
