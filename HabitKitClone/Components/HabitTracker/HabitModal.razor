@@ -5,6 +5,7 @@
 @inject ICategoryService CategoryService
 @inject UserContextService UserContextService
 
+
 <div class="modal-overlay" @onclick="OnCancel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-content" @onclick:stopPropagation="true">
         <div class="modal-header">
@@ -35,19 +36,60 @@
             
             <div class="form-group">
                 <label for="habit-category" class="form-label">Category</label>
-                <select id="habit-category" class="form-control" @bind="Habit.CategoryId">
-                    @if (AvailableCategories.Any())
-                    {
-                        @foreach (var category in AvailableCategories)
+                <div class="category-selection">
+                    <select id="habit-category" class="form-control" @onchange="OnCategorySelectionChanged">
+                        @if (AvailableCategories.Any())
                         {
-                            <option value="@category.Id">@category.Name</option>
+                            @foreach (var category in AvailableCategories)
+                            {
+                                <option value="@category.Id" selected="@(Habit.CategoryId == category.Id)">@category.Name</option>
+                            }
                         }
-                    }
-                    else
-                    {
-                        <option value="0">No categories available</option>
-                    }
-                </select>
+                        <option value="0" selected="@(Habit.CategoryId == 0)">+ Add New Category</option>
+                    </select>
+                </div>
+                
+                @if (ShowNewCategoryForm)
+                {
+                    <div class="new-category-form">
+                        <div class="form-group">
+                            <label for="new-category-name" class="form-label">Category Name</label>
+                            <input type="text" 
+                                   id="new-category-name" 
+                                   class="form-control" 
+                                   @bind="NewCategory.Name" 
+                                   placeholder="Enter category name" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new-category-color" class="form-label">Color</label>
+                            <div class="color-picker">
+                                @foreach (var color in AvailableColors)
+                                {
+                                    <button type="button" 
+                                            class="color-option @(NewCategory.Color == color ? "selected" : "")" 
+                                            style="background-color: @color"
+                                            @onclick="() => SelectNewCategoryColor(color)"
+                                            title="@color"></button>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new-category-icon" class="form-label">Icon</label>
+                            <input type="text" 
+                                   id="new-category-icon" 
+                                   class="form-control" 
+                                   @bind="NewCategory.Icon" 
+                                   placeholder="Enter emoji or icon" />
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" @onclick="CancelNewCategory">Cancel</button>
+                            <button type="button" class="btn btn-primary" @onclick="CreateNewCategory">Create Category</button>
+                        </div>
+                    </div>
+                }
             </div>
             
             <div class="form-group">
@@ -88,6 +130,8 @@
     [Parameter] public EventCallback OnCancel { get; set; }
 
     private List<CategoryDto> AvailableCategories = new();
+    private bool ShowNewCategoryForm = false;
+    private CreateCategoryDto NewCategory = new();
 
     private readonly string[] AvailableColors = new[]
     {
@@ -120,11 +164,109 @@
                 var createdCategory = await CategoryService.CreateCategoryAsync(defaultCategory, userId);
                 AvailableCategories.Add(createdCategory);
             }
+            
+            // Set CategoryId to the first available category after loading
+            if (AvailableCategories.Any())
+            {
+                Habit.CategoryId = AvailableCategories.First().Id;
+                Console.WriteLine($"Set CategoryId to: {Habit.CategoryId}");
+                OnCategoryChange(); // Update the form state
+                StateHasChanged(); // Force UI update
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading categories: {ex.Message}");
             AvailableCategories = new List<CategoryDto>();
+        }
+    }
+
+    private void OnCategorySelectionChanged(ChangeEventArgs e)
+    {
+        var selectedValue = e.Value?.ToString();
+        if (int.TryParse(selectedValue, out int categoryId))
+        {
+            Habit.CategoryId = categoryId;
+            Console.WriteLine($"OnCategorySelectionChanged called. CategoryId: {Habit.CategoryId}");
+            
+            if (Habit.CategoryId == 0)
+            {
+                Console.WriteLine("Setting ShowNewCategoryForm to true");
+                ShowNewCategoryForm = true;
+                NewCategory = new CreateCategoryDto
+                {
+                    Name = "",
+                    Color = "#3B82F6",
+                    Icon = "📝"
+                };
+            }
+            else
+            {
+                Console.WriteLine("Setting ShowNewCategoryForm to false");
+                ShowNewCategoryForm = false;
+            }
+            StateHasChanged();
+        }
+    }
+
+    private void OnCategoryChange()
+    {
+        Console.WriteLine($"OnCategoryChange called. CategoryId: {Habit.CategoryId}");
+        if (Habit.CategoryId == 0)
+        {
+            Console.WriteLine("Setting ShowNewCategoryForm to true");
+            ShowNewCategoryForm = true;
+            NewCategory = new CreateCategoryDto
+            {
+                Name = "",
+                Color = "#3B82F6",
+                Icon = "📝"
+            };
+        }
+        else
+        {
+            Console.WriteLine("Setting ShowNewCategoryForm to false");
+            ShowNewCategoryForm = false;
+        }
+        StateHasChanged();
+    }
+
+    private void SelectNewCategoryColor(string color)
+    {
+        NewCategory.Color = color;
+    }
+
+    private void CancelNewCategory()
+    {
+        ShowNewCategoryForm = false;
+        NewCategory = new CreateCategoryDto();
+        Habit.CategoryId = AvailableCategories.FirstOrDefault()?.Id ?? 0;
+    }
+
+    private async Task CreateNewCategory()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(NewCategory.Name))
+            {
+                return; // TODO: Show validation error
+            }
+
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var createdCategory = await CategoryService.CreateCategoryAsync(NewCategory, userId);
+            AvailableCategories.Add(createdCategory);
+            
+            // Select the newly created category
+            Habit.CategoryId = createdCategory.Id;
+            ShowNewCategoryForm = false;
+            NewCategory = new CreateCategoryDto();
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating category: {ex.Message}");
+            // TODO: Show error message to user
         }
     }
 
