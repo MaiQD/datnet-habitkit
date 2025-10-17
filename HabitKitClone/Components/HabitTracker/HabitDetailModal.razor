@@ -1,0 +1,386 @@
+@using Microsoft.Extensions.Localization
+@using HabitKitClone.Resources
+@using HabitKitClone.Services
+@using HabitKitClone.DTOs
+@inject IStringLocalizer<SharedResource> Localizer
+@inject IHabitService HabitService
+@inject UserContextService UserContextService
+
+<div class="modal-overlay" @onclick="OnClose" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content habit-detail-modal" @onclick:stopPropagation="true">
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="habit-info">
+                <div class="habit-icon" style="background-color: @Habit.Color">
+                    @Habit.Icon
+                </div>
+                <div class="habit-details">
+                    <h2 id="modal-title" class="habit-title">@Habit.Title</h2>
+                    <p class="habit-description">@Habit.Description</p>
+                </div>
+            </div>
+            <button class="modal-close" @onclick="OnClose" aria-label="Close modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+            <!-- Statistics Section -->
+        <div class="statistics-section">
+            <div class="stat-card">
+                <div class="stat-value">@Habit.StreakCount</div>
+                <div class="stat-label">Current Streak</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Habit.TotalCompletions</div>
+                <div class="stat-label">Total Completions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Habit.BestStreak</div>
+                <div class="stat-label">Best Streak</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Habit.CompletionRate%</div>
+                <div class="stat-label">Completion Rate</div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn today-btn" @onclick="async () => await GoToToday()">
+                <i class="fas fa-calendar-day"></i>
+                Today
+            </button>
+            <button class="action-btn habit-btn" @onclick="() => {}">
+                <i class="fas fa-@GetHabitIcon()"></i>
+                @Habit.Title
+            </button>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="calendar-section">
+            <!-- Month Navigation -->
+            <div class="month-navigation">
+                <button class="nav-btn" @onclick="async () => await PreviousMonth()" aria-label="Previous month">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h3 class="month-title">@GetMonthYear()</h3>
+                <button class="nav-btn" @onclick="async () => await NextMonth()" aria-label="Next month">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-grid" role="grid" aria-label="Calendar for @GetMonthYear()">
+                <!-- Day Headers -->
+                <div class="day-header">Sun</div>
+                <div class="day-header">Mon</div>
+                <div class="day-header">Tue</div>
+                <div class="day-header">Wed</div>
+                <div class="day-header">Thu</div>
+                <div class="day-header">Fri</div>
+                <div class="day-header">Sat</div>
+
+                <!-- Calendar Days -->
+                @foreach (var day in CalendarDays)
+                {
+                    <div class="calendar-cell @GetCellClasses(day)"
+                         @onclick="@(day.IsFutureDate ? (() => {}) : (() => SelectDate(day.Date)))"
+                         role="gridcell"
+                         tabindex="@(day.IsFutureDate ? -1 : 0)"
+                         aria-label="@day.Date.ToString("MMMM dd, yyyy")">
+                        <span class="day-number">@day.Date.Day</span>
+                        @if (day.CompletionCount > 0)
+                        {
+                            <span class="completion-indicator" style="background-color: @Habit.Color"></span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Date Selection Panel -->
+        @if (SelectedDate.HasValue)
+        {
+            <div class="date-selection-panel">
+                <div class="selected-date-info">
+                    <button class="date-btn" @onclick="() => {}">
+                        <i class="fas fa-calendar"></i>
+                        @SelectedDate.Value.ToString("MMM dd")
+                    </button>
+                    <button class="habit-btn" @onclick="() => {}">
+                        <i class="fas fa-@GetHabitIcon()"></i>
+                        @Habit.Title
+                    </button>
+                    <button class="close-btn" @onclick="ClearSelection">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="completion-actions">
+                    <div class="current-count-display">
+                        <span class="count-number">@GetCurrentCount()</span>
+                        <span class="count-label">completions</span>
+                    </div>
+                    
+                    <button class="btn-manage-completions" @onclick="OpenCompletionModal">
+                        <i class="fas fa-edit"></i>
+                        <span>Manage Completions</span>
+                    </button>
+                </div>
+            </div>
+        }
+        </div>
+    </div>
+</div>
+
+<!-- Completion Modal -->
+@if (ShowCompletionModal && SelectedDate.HasValue)
+{
+    <CompletionModal Habit="Habit" 
+                     SelectedDate="SelectedDate" 
+                     OnClose="CloseCompletionModal"
+                     OnCountChanged="OnCompletionCountChanged" />
+}
+
+@code {
+    [Parameter] public HabitModel Habit { get; set; } = new();
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public DateTime? InitialDate { get; set; }
+
+    private DateTime CurrentMonth = DateTime.Today;
+    private DateTime? SelectedDate = null;
+    private int CurrentCount = 0;
+    private List<CalendarDay> CalendarDays = new();
+    private Dictionary<DateOnly, int> CompletionCounts = new();
+    private bool ShowCompletionModal = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Habit != null && Habit.Id != _lastLoadedHabitId)
+        {
+            Console.WriteLine($"[HabitDetailModal] OnParametersSetAsync: Loading data for habit {Habit.Title} ({Habit.Id})");
+            await LoadCompletionData();
+            LoadCalendar();
+            _lastLoadedHabitId = Habit.Id;
+            StateHasChanged(); // Ensure UI updates after data is loaded
+        }
+        
+        if (InitialDate.HasValue)
+        {
+            CurrentMonth = InitialDate.Value;
+        }
+        else if (CurrentMonth == default)
+        {
+            CurrentMonth = DateTime.Today;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Data loading is now handled in OnParametersSetAsync
+    }
+
+    private async Task LoadCompletionData()
+    {
+        if (Habit == null) return;
+
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var completions = await HabitService.GetHabitCompletionsForMonthAsync(
+                CurrentMonth.Year, CurrentMonth.Month, userId);
+
+            CompletionCounts = completions
+                .Where(kvp => kvp.Value.Any(hc => hc.HabitId == Habit.Id))
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.FirstOrDefault(hc => hc.HabitId == Habit.Id)?.Count ?? 0
+                );
+
+            Console.WriteLine($"[HabitDetailModal] LoadCompletionData for HabitId: {Habit.Id}. Fetched {completions.Count()} completions.");
+            foreach (var entry in CompletionCounts)
+            {
+                Console.WriteLine($"  Date: {entry.Key}, Count: {entry.Value}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading completion data: {ex.Message}");
+        }
+    }
+
+    private void LoadCalendar()
+    {
+        CalendarDays.Clear();
+        
+        var firstDayOfMonth = new DateTime(CurrentMonth.Year, CurrentMonth.Month, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        var startingDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+        var startDate = firstDayOfMonth.AddDays(-startingDayOfWeek);
+        var today = DateTime.Today;
+
+        Console.WriteLine($"[HabitDetailModal] LoadCalendar called for month: {CurrentMonth.ToString("yyyy-MM")}. CompletionCounts has {CompletionCounts.Count} entries.");
+
+        for (int i = 0; i < 42; i++) // 6 weeks * 7 days
+        {
+            var date = startDate.AddDays(i);
+            var dateOnly = DateOnly.FromDateTime(date);
+            var completionCount = CompletionCounts.GetValueOrDefault(dateOnly, 0);
+
+            CalendarDays.Add(new CalendarDay
+            {
+                Date = date,
+                IsCurrentMonth = date.Month == CurrentMonth.Month,
+                IsToday = date.Date == today,
+                IsFutureDate = date.Date > today,
+                CompletionCount = completionCount
+            });
+        }
+
+        foreach (var day in CalendarDays.Where(d => d.CompletionCount > 0))
+        {
+            Console.WriteLine($"  CalendarDay with completion: {day.Date.ToShortDateString()}, Count: {day.CompletionCount}");
+        }
+    }
+
+    private string GetCellClasses(CalendarDay day)
+    {
+        var classes = new List<string>();
+        
+        if (!day.IsCurrentMonth) classes.Add("other-month");
+        if (day.IsToday) classes.Add("today");
+        if (day.IsFutureDate) classes.Add("future-date");
+        if (day.CompletionCount > 0) classes.Add("has-completion");
+        if (SelectedDate.HasValue && day.Date.Date == SelectedDate.Value.Date) classes.Add("selected");
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetMonthYear()
+    {
+        return CurrentMonth.ToString("MMMM yyyy");
+    }
+
+    private string GetHabitIcon()
+    {
+        return Habit.Icon.Length > 1 ? "star" : "circle";
+    }
+
+    private async Task PreviousMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(-1);
+        await LoadCompletionData();
+        LoadCalendar();
+        StateHasChanged();
+    }
+
+    private async Task NextMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(1);
+        await LoadCompletionData();
+        LoadCalendar();
+        StateHasChanged();
+    }
+
+    private async Task GoToToday()
+    {
+        CurrentMonth = DateTime.Today;
+        await LoadCompletionData();
+        LoadCalendar();
+        StateHasChanged();
+    }
+
+    private void SelectDate(DateTime date)
+    {
+        SelectedDate = date;
+        CurrentCount = GetCurrentCount();
+        StateHasChanged();
+    }
+
+    private void ClearSelection()
+    {
+        SelectedDate = null;
+        CurrentCount = 0;
+    }
+
+    private int GetCurrentCount()
+    {
+        if (!SelectedDate.HasValue) return 0;
+        var dateOnly = DateOnly.FromDateTime(SelectedDate.Value);
+        return CompletionCounts.GetValueOrDefault(dateOnly, 0);
+    }
+
+    private void OpenCompletionModal()
+    {
+        ShowCompletionModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseCompletionModal()
+    {
+        ShowCompletionModal = false;
+        StateHasChanged();
+    }
+
+    private async Task OnCompletionCountChanged()
+    {
+        // Reload completion data to get the latest counts
+        await LoadCompletionData();
+        
+        // Refresh the current count and calendar
+        if (SelectedDate.HasValue)
+        {
+            var dateOnly = DateOnly.FromDateTime(SelectedDate.Value);
+            CurrentCount = CompletionCounts.GetValueOrDefault(dateOnly, 0);
+            
+            // Update the calendar day
+            var calendarDay = CalendarDays.FirstOrDefault(d => d.Date.Date == SelectedDate.Value.Date);
+            if (calendarDay != null)
+            {
+                calendarDay.CompletionCount = CurrentCount;
+            }
+        }
+        
+        // Reload the entire calendar to update all days
+        LoadCalendar();
+        
+        // Refresh habit statistics
+        await RefreshHabitStatistics();
+        StateHasChanged();
+    }
+
+    private async Task RefreshHabitStatistics()
+    {
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var habitDto = await HabitService.GetHabitByIdAsync(Habit.Id, userId);
+            
+            if (habitDto != null)
+            {
+                Habit.StreakCount = habitDto.CurrentStreak;
+                Habit.TotalCompletions = habitDto.TotalCompletions;
+                Habit.BestStreak = habitDto.LongestStreak;
+                Habit.CompletionRate = habitDto.CompletionRate;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error refreshing habit statistics: {ex.Message}");
+        }
+    }
+
+    private int _lastLoadedHabitId = -1; // Track the last loaded habit to prevent unnecessary reloads
+
+    public class CalendarDay
+    {
+        public DateTime Date { get; set; }
+        public bool IsCurrentMonth { get; set; }
+        public bool IsToday { get; set; }
+        public bool IsFutureDate { get; set; }
+        public int CompletionCount { get; set; }
+    }
+}

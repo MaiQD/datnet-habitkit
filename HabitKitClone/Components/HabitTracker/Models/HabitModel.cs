@@ -11,6 +11,9 @@ public class HabitModel
     public string Color { get; set; } = "#238636";
     public int TodayCount { get; set; }
     public int StreakCount { get; set; }
+    public int TotalCompletions { get; set; }
+    public int BestStreak { get; set; }
+    public double CompletionRate { get; set; }
     public List<ContributionDay> ContributionData { get; set; } = new();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastCompletedAt { get; set; }

@@ -1,0 +1,191 @@
+@using HabitKitClone.Services
+@using HabitKitClone.DTOs
+@inject IHabitService HabitService
+@inject UserContextService UserContextService
+
+<div class="modal-overlay" @onclick="OnClose">
+    <div class="modal-content completion-modal" @onclick:stopPropagation="true">
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <div class="completion-header">
+                <div class="selected-date-info">
+                    <i class="fas fa-calendar-day"></i>
+                    <span>@SelectedDate?.ToString("MMM dd")</span>
+                </div>
+                <div class="habit-info">
+                    <i class="fas fa-star" style="color: @Habit.Color"></i>
+                    <span>@Habit.Title</span>
+                </div>
+            </div>
+            <button class="modal-close" @onclick="OnClose" aria-label="Close modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Completion Controls -->
+        <div class="modal-body">
+            <div class="completion-controls">
+                <!-- Current Count Display -->
+                <div class="count-display">
+                    <span class="count-number">@CurrentCount</span>
+                    <span class="count-label">completions</span>
+                </div>
+
+                <!-- Increment/Decrement Controls -->
+                <div class="increment-controls">
+                    <button class="btn-decrement" @onclick="DecrementCount" disabled="@(CurrentCount <= 0)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="btn-increment" @onclick="IncrementCount">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- Quick Count Buttons -->
+                <div class="quick-counts">
+                    <button class="btn-quick" @onclick="() => SetCount(1)">1</button>
+                    <button class="btn-quick" @onclick="() => SetCount(5)">5</button>
+                    <button class="btn-quick" @onclick="() => SetCount(10)">10</button>
+                    <button class="btn-quick" @onclick="() => SetCount(50)">50</button>
+                    <button class="btn-quick" @onclick="() => SetCount(100)">100</button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-reset" @onclick="ResetCount">
+                        <i class="fas fa-undo"></i>
+                        Reset
+                    </button>
+                    <button class="btn-fill" @onclick="FillDay">
+                        <i class="fas fa-fill-drip"></i>
+                        Fill Day
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public HabitModel Habit { get; set; } = new();
+    [Parameter] public DateTime? SelectedDate { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnCountChanged { get; set; }
+
+    private int CurrentCount = 0;
+    private Dictionary<DateOnly, int> CompletionCounts = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (SelectedDate.HasValue)
+        {
+            await LoadCompletionData();
+        }
+    }
+
+    private async Task LoadCompletionData()
+    {
+        if (Habit == null || !SelectedDate.HasValue) return;
+
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var dateOnly = DateOnly.FromDateTime(SelectedDate.Value);
+            var completions = await HabitService.GetHabitCompletionsForMonthAsync(
+                SelectedDate.Value.Year, SelectedDate.Value.Month, userId);
+
+            var completion = completions
+                .Where(kvp => kvp.Value.Any(hc => hc.HabitId == Habit.Id))
+                .FirstOrDefault(kvp => kvp.Key == dateOnly);
+
+            CurrentCount = completion.Value?.FirstOrDefault(hc => hc.HabitId == Habit.Id)?.Count ?? 0;
+            
+            Console.WriteLine($"[CompletionModal] LoadCompletionData for {SelectedDate.Value:MMM dd}: {CurrentCount} completions");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading completion data: {ex.Message}");
+        }
+    }
+
+    private async Task IncrementCount()
+    {
+        if (!SelectedDate.HasValue) return;
+
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var dateOnly = DateOnly.FromDateTime(SelectedDate.Value);
+            var newCount = await HabitService.IncrementHabitCompletionAsync(Habit.Id, dateOnly, userId);
+            
+            CurrentCount = newCount;
+            await OnCountChanged.InvokeAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error incrementing count: {ex.Message}");
+        }
+    }
+
+    private async Task DecrementCount()
+    {
+        if (!SelectedDate.HasValue) return;
+
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var dateOnly = DateOnly.FromDateTime(SelectedDate.Value);
+            var newCount = await HabitService.DecrementHabitCompletionAsync(Habit.Id, dateOnly, userId);
+            
+            CurrentCount = newCount;
+            await OnCountChanged.InvokeAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error decrementing count: {ex.Message}");
+        }
+    }
+
+    private async Task SetCount(int count)
+    {
+        if (!SelectedDate.HasValue) return;
+
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var dateOnly = DateOnly.FromDateTime(SelectedDate.Value);
+            var currentCount = CurrentCount;
+            
+            // Adjust to target count
+            while (currentCount < count)
+            {
+                currentCount = await HabitService.IncrementHabitCompletionAsync(Habit.Id, dateOnly, userId);
+            }
+            
+            while (currentCount > count)
+            {
+                currentCount = await HabitService.DecrementHabitCompletionAsync(Habit.Id, dateOnly, userId);
+            }
+            
+            CurrentCount = currentCount;
+            await OnCountChanged.InvokeAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting count: {ex.Message}");
+        }
+    }
+
+    private async Task ResetCount()
+    {
+        await SetCount(0);
+    }
+
+    private async Task FillDay()
+    {
+        await SetCount(10); // Default fill amount
+    }
+}

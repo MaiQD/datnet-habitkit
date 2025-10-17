@@ -71,7 +71,8 @@
                            OnIncrementCompletion="IncrementHabitCompletion"
                            OnDecrementCompletion="DecrementHabitCompletion"
                            OnEditHabit="EditHabit"
-                           OnDeleteHabit="DeleteHabit" />
+                           OnDeleteHabit="DeleteHabit"
+                           OnShowDetail="ShowHabitDetail" />
             }
         }
         else
@@ -119,11 +120,20 @@
                 OnDelete="DeleteHabit" />
 }
 
+<!-- Habit Detail Modal -->
+@if (ShowDetailModal)
+{
+    <HabitDetailModal Habit="DetailHabit" 
+                      OnClose="CloseHabitDetail" />
+}
+
 @code {
     private string SelectedCategory = "all";
     private string CurrentView = "grid";
     private bool ShowModal = false;
+    private bool ShowDetailModal = false;
     private HabitModel? EditingHabit;
+    private HabitModel? DetailHabit;
     
     private List<CategoryDto> Categories = new();
     private List<HabitModel> Habits = new();
@@ -335,6 +345,21 @@
         EditingHabit = null;
     }
 
+    private void ShowHabitDetail(HabitModel habit)
+    {
+        DetailHabit = habit;
+        ShowDetailModal = true;
+        StateHasChanged();
+    }
+
+    private async Task CloseHabitDetail()
+    {
+        ShowDetailModal = false;
+        DetailHabit = null;
+        // Reload habits to ensure main page shows updated statistics
+        await LoadHabits();
+    }
+
     private void NavigateToSettings()
     {
         Console.WriteLine("100");
@@ -440,7 +465,10 @@
                 TodayCount = completions.TryGetValue(today, out var todayCompletions) 
                     ? todayCompletions.FirstOrDefault(c => c.HabitId == h.Id)?.Count ?? 0 
                     : 0,
-                StreakCount = CalculateStreak(h.Id, completions),
+                StreakCount = h.CurrentStreak,
+                TotalCompletions = h.TotalCompletions,
+                BestStreak = h.LongestStreak,
+                CompletionRate = h.CompletionRate,
                 ContributionData = BuildContributionData(h.Id, h.Color, completions)
             }).ToList();
         }

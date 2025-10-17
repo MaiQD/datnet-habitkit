@@ -33,6 +33,11 @@ public class Habit
     
     public DateTime? UpdatedAt { get; set; }
     
+    // Pre-calculated statistics
+    public int TotalCompletions { get; set; } = 0;
+    public int BestStreak { get; set; } = 0;
+    public int CurrentStreak { get; set; } = 0;
+    
     // Navigation properties
     public string UserId { get; set; } = string.Empty;
     public ApplicationUser User { get; set; } = null!;

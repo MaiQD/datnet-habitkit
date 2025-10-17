@@ -37,7 +37,8 @@
         
         <ContributionChart Data="Habit.ContributionData" 
                           Color="Habit.Color" 
-                          HabitId="Habit.Id" />
+                          HabitId="Habit.Id"
+                          OnCellClick="OnContributionChartClick" />
     </div>
 </div>
 
@@ -47,4 +48,10 @@
     [Parameter] public EventCallback<HabitModel> OnDecrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnEditHabit { get; set; }
     [Parameter] public EventCallback<HabitModel> OnDeleteHabit { get; set; }
+    [Parameter] public EventCallback<HabitModel> OnShowDetail { get; set; }
+
+    private async Task OnContributionChartClick(ContributionDay? day)
+    {
+        await OnShowDetail.InvokeAsync(Habit);
+    }
 }

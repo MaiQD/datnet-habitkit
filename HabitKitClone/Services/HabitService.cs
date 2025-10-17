@@ -30,11 +30,12 @@ public class HabitService : IHabitService
         foreach (var habit in habits)
         {
             var habitDto = _mapper.Map<HabitDto>(habit);
-            var stats = await CalculateHabitStatisticsAsync(habit.Id, userId);
-            habitDto.CurrentStreak = (int)stats["CurrentStreak"];
-            habitDto.LongestStreak = (int)stats["LongestStreak"];
-            habitDto.CompletionRate = (double)stats["CompletionRate"];
-            habitDto.TotalCompletions = (int)stats["TotalCompletions"];
+            // Use pre-calculated statistics from database
+            habitDto.CurrentStreak = habit.CurrentStreak;
+            habitDto.LongestStreak = habit.BestStreak;
+            habitDto.TotalCompletions = habit.TotalCompletions;
+            // Calculate completion rate on-demand
+            habitDto.CompletionRate = await CalculateCompletionRateAsync(habit.Id, userId);
             habitDtos.Add(habitDto);
         }
 
@@ -50,11 +51,12 @@ public class HabitService : IHabitService
         if (habit == null) return null;
 
         var habitDto = _mapper.Map<HabitDto>(habit);
-        var stats = await CalculateHabitStatisticsAsync(habit.Id, userId);
-        habitDto.CurrentStreak = (int)stats["CurrentStreak"];
-        habitDto.LongestStreak = (int)stats["LongestStreak"];
-        habitDto.CompletionRate = (double)stats["CompletionRate"];
-        habitDto.TotalCompletions = (int)stats["TotalCompletions"];
+        // Use pre-calculated statistics from database
+        habitDto.CurrentStreak = habit.CurrentStreak;
+        habitDto.LongestStreak = habit.BestStreak;
+        habitDto.TotalCompletions = habit.TotalCompletions;
+        // Calculate completion rate on-demand
+        habitDto.CompletionRate = await CalculateCompletionRateAsync(habit.Id, userId);
 
         return habitDto;
     }
@@ -150,6 +152,9 @@ public class HabitService : IHabitService
 
         await _context.SaveChangesAsync();
         
+        // Update habit statistics
+        await RecalculateHabitStatisticsAsync(habitId, userId);
+        
         // Return the new count
         var updatedCompletion = await _context.HabitCompletions
             .FirstOrDefaultAsync(hc => hc.HabitId == habitId && hc.CompletionDate == date && hc.UserId == userId);
@@ -169,11 +174,15 @@ public class HabitService : IHabitService
             {
                 _context.HabitCompletions.Remove(existingCompletion);
                 await _context.SaveChangesAsync();
+                // Update habit statistics
+                await RecalculateHabitStatisticsAsync(habitId, userId);
                 return 0;
             }
             else
             {
                 await _context.SaveChangesAsync();
+                // Update habit statistics
+                await RecalculateHabitStatisticsAsync(habitId, userId);
                 return existingCompletion.Count;
             }
         }
@@ -221,8 +230,12 @@ public class HabitService : IHabitService
 
         if (completion == null) return false;
 
+        var habitId = completion.HabitId;
         _context.HabitCompletions.Remove(completion);
         await _context.SaveChangesAsync();
+
+        // Update habit statistics
+        await RecalculateHabitStatisticsAsync(habitId, userId);
 
         return true;
     }
@@ -283,22 +296,15 @@ public class HabitService : IHabitService
             };
         }
 
-        var completions = await _context.HabitCompletions
-            .Where(hc => hc.HabitId == habitId && hc.UserId == userId)
-            .OrderBy(hc => hc.CompletionDate)
-            .ToListAsync();
-
-        var totalCompletions = completions.Sum(hc => hc.Count);
-        var completionRate = CalculateCompletionRate(habit, completions);
-        var currentStreak = CalculateCurrentStreak(habit, completions);
-        var longestStreak = CalculateLongestStreak(habit, completions);
+        // Use pre-calculated statistics from database
+        var completionRate = await CalculateCompletionRateAsync(habitId, userId);
 
         return new Dictionary<string, object>
         {
-            ["CurrentStreak"] = currentStreak,
-            ["LongestStreak"] = longestStreak,
+            ["CurrentStreak"] = habit.CurrentStreak,
+            ["LongestStreak"] = habit.BestStreak,
             ["CompletionRate"] = completionRate,
-            ["TotalCompletions"] = totalCompletions
+            ["TotalCompletions"] = habit.TotalCompletions
         };
     }
 
@@ -307,22 +313,61 @@ public class HabitService : IHabitService
         return await GetHabitStatisticsAsync(habitId, userId);
     }
 
-    private double CalculateCompletionRate(Habit habit, List<HabitCompletion> completions)
+    private async Task RecalculateHabitStatisticsAsync(int habitId, string userId)
     {
+        var habit = await _context.Habits
+            .FirstOrDefaultAsync(h => h.Id == habitId && h.UserId == userId);
+
+        if (habit == null) return;
+
+        var completions = await _context.HabitCompletions
+            .Where(hc => hc.HabitId == habitId && hc.UserId == userId)
+            .OrderBy(hc => hc.CompletionDate)
+            .ToListAsync();
+
+        // Calculate total completions
+        habit.TotalCompletions = completions.Sum(hc => hc.Count);
+
+        // Calculate streaks
+        var (currentStreak, bestStreak) = await CalculateStreaksAsync(habitId, userId);
+        habit.CurrentStreak = currentStreak;
+        habit.BestStreak = Math.Max(habit.BestStreak, bestStreak); // Never decrease best streak
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task<double> CalculateCompletionRateAsync(int habitId, string userId)
+    {
+        var habit = await _context.Habits
+            .FirstOrDefaultAsync(h => h.Id == habitId && h.UserId == userId);
+
+        if (habit == null) return 0.0;
+
         var startDate = habit.CreatedAt.Date;
         var endDate = DateTime.UtcNow.Date;
         var totalDays = (endDate - startDate).Days + 1;
 
         if (totalDays <= 0) return 0.0;
 
-        var completedDays = completions.Count;
+        var completedDays = await _context.HabitCompletions
+            .Where(hc => hc.HabitId == habitId && hc.UserId == userId)
+            .CountAsync();
+
         return Math.Round((double)completedDays / totalDays * 100, 1);
     }
 
-    private int CalculateCurrentStreak(Habit habit, List<HabitCompletion> completions)
+    private async Task<(int currentStreak, int bestStreak)> CalculateStreaksAsync(int habitId, string userId)
     {
+        var completions = await _context.HabitCompletions
+            .Where(hc => hc.HabitId == habitId && hc.UserId == userId)
+            .OrderBy(hc => hc.CompletionDate)
+            .ToListAsync();
+
+        if (!completions.Any()) return (0, 0);
+
+        // Calculate current streak
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var streak = 0;
+        var currentStreak = 0;
         var currentDate = today;
 
         while (true)
@@ -331,7 +376,7 @@ public class HabitService : IHabitService
             
             if (hasCompletion)
             {
-                streak++;
+                currentStreak++;
                 currentDate = currentDate.AddDays(-1);
             }
             else
@@ -340,16 +385,10 @@ public class HabitService : IHabitService
             }
         }
 
-        return streak;
-    }
-
-    private int CalculateLongestStreak(Habit habit, List<HabitCompletion> completions)
-    {
-        if (!completions.Any()) return 0;
-
+        // Calculate best streak
         var sortedCompletions = completions.OrderBy(c => c.CompletionDate).ToList();
-        var longestStreak = 0;
-        var currentStreak = 1;
+        var bestStreak = 0;
+        var currentBestStreak = 1;
 
         for (int i = 1; i < sortedCompletions.Count; i++)
         {
@@ -358,15 +397,17 @@ public class HabitService : IHabitService
 
             if (daysDifference == 1)
             {
-                currentStreak++;
+                currentBestStreak++;
             }
             else
             {
-                longestStreak = Math.Max(longestStreak, currentStreak);
-                currentStreak = 1;
+                bestStreak = Math.Max(bestStreak, currentBestStreak);
+                currentBestStreak = 1;
             }
         }
 
-        return Math.Max(longestStreak, currentStreak);
+        bestStreak = Math.Max(bestStreak, currentBestStreak);
+
+        return (currentStreak, bestStreak);
     }
 }
