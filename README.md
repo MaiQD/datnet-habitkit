@@ -1,0 +1,1 @@
+[![Build and Deploy to Fly.io](https://github.com/MaiQD/datnet-habitkit/actions/workflows/deploy.yml/badge.svg)](https://github.com/MaiQD/datnet-habitkit/actions/workflows/deploy.yml)
