@@ -3,7 +3,7 @@
 .contribution-chart {
     background-color: var(--bg-primary);
     border-radius: 8px;
-    padding: 0.75rem;
+    padding: 0.5rem;
     border: 1px solid var(--bg-tertiary);
     overflow: hidden; /* Prevent chart overflow */
 }
@@ -30,7 +30,7 @@
 .chart-container {
     overflow-x: auto;
     overflow-y: hidden;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: var(--border-color) transparent;
@@ -100,24 +100,33 @@
 }
 
 .chart-cell {
-    width: 20px;
-    height: 20px;
+    width: 8px;
+    height: 8px;
     border-radius: 2px;
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid transparent;
     position: relative;
     flex-shrink: 0;
-    min-width: 20px;
+    min-width: 8px;
     box-sizing: border-box;
-    background-color: var(--habit-color-level-4); /* Fallback color */
 }
 
-.chart-cell.level-0 { background-color: var(--habit-color-level-0); }
-.chart-cell.level-1 { background-color: var(--habit-color-level-1); }
-.chart-cell.level-2 { background-color: var(--habit-color-level-2); }
-.chart-cell.level-3 { background-color: var(--habit-color-level-3); }
-.chart-cell.level-4 { background-color: var(--habit-color-level-4); }
+.contribution-chart .chart-cell.level-0 { background-color: var(--chart-habit-color-level-0) !important; }
+.contribution-chart .chart-cell.level-1 { background-color: var(--chart-habit-color-level-1) !important; }
+.contribution-chart .chart-cell.level-2 { background-color: var(--chart-habit-color-level-2) !important; }
+.contribution-chart .chart-cell.level-3 { background-color: var(--chart-habit-color-level-3) !important; }
+.contribution-chart .chart-cell.level-4 { background-color: var(--chart-habit-color-level-4) !important; }
+
+.chart-cell-empty {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background-color: transparent;
+    flex-shrink: 0;
+    min-width: 8px;
+    box-sizing: border-box;
+}
 
 
 .chart-cell:hover {
@@ -170,9 +179,16 @@
     }
     
     .chart-cell {
-        width: 20px;
-        height: 20px;
-        min-width: 20px;
+        width: 8px;
+        height: 8px;
+        min-width: 8px;
+        flex-shrink: 0;
+    }
+    
+    .chart-cell-empty {
+        width: 8px;
+        height: 8px;
+        min-width: 8px;
         flex-shrink: 0;
     }
     
@@ -202,6 +218,12 @@
     }
     
     .chart-cell {
+        width: 10px;
+        height: 10px;
+        min-width: 10px;
+    }
+    
+    .chart-cell-empty {
         width: 10px;
         height: 10px;
         min-width: 10px;
@@ -241,6 +263,12 @@
         min-width: 12px;
     }
     
+    .chart-cell-empty {
+        width: 12px;
+        height: 12px;
+        min-width: 12px;
+    }
+    
     .legend-cell {
         width: 12px;
         height: 12px;
@@ -275,6 +303,12 @@
         min-width: 14px;
     }
     
+    .chart-cell-empty {
+        width: 14px;
+        height: 14px;
+        min-width: 14px;
+    }
+    
     .legend-cell {
         width: 14px;
         height: 14px;
@@ -297,9 +331,18 @@
     }
     
     .chart-cell {
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 20px !important;
+        width: 8px !important;
+        height: 8px !important;
+        min-width: 8px !important;
+        flex-shrink: 0 !important;
+        display: block !important;
+        position: relative !important;
+    }
+    
+    .chart-cell-empty {
+        width: 8px !important;
+        height: 8px !important;
+        min-width: 8px !important;
         flex-shrink: 0 !important;
         display: block !important;
         position: relative !important;
@@ -321,9 +364,18 @@
     }
     
     .chart-cell {
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 20px !important;
+        width: 10px !important;
+        height: 10px !important;
+        min-width: 10px !important;
+        flex-shrink: 0 !important;
+        display: block !important;
+        position: relative !important;
+    }
+    
+    .chart-cell-empty {
+        width: 10px !important;
+        height: 10px !important;
+        min-width: 10px !important;
         flex-shrink: 0 !important;
         display: block !important;
         position: relative !important;

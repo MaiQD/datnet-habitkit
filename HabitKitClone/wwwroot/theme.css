@@ -49,6 +49,7 @@ html {
     --habit-color-level-2: rgba(35, 134, 54, 0.6);
     --habit-color-level-3: rgba(35, 134, 54, 0.8);
     --habit-color-level-4: #238636;
+    --chart-future-color: #30363d;
 }
 
 [data-theme="light"] {
@@ -94,4 +95,5 @@ html {
     --habit-color-level-2: rgba(52, 199, 89, 0.6);
     --habit-color-level-3: rgba(52, 199, 89, 0.8);
     --habit-color-level-4: #34c759;
+    --chart-future-color: #eef0f2;
 }

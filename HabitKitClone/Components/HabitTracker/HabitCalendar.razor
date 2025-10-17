@@ -1,0 +1,242 @@
+@using Microsoft.Extensions.Localization
+@using HabitKitClone.Resources
+@using HabitKitClone.Services
+@using HabitKitClone.DTOs
+@inject IStringLocalizer<SharedResource> Localizer
+@inject IHabitService HabitService
+@inject UserContextService UserContextService
+
+<div class="habit-calendar" style="@GetCalendarStyle()">
+    <!-- Month Navigation -->
+    <div class="month-navigation">
+        <button class="nav-btn" @onclick="async () => await PreviousMonth()" aria-label="Previous month">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <h3 class="month-title">@GetMonthYear()</h3>
+        <button class="nav-btn" @onclick="async () => await NextMonth()" aria-label="Next month">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="calendar-grid" role="grid" aria-label="Calendar for @GetMonthYear()">
+        <!-- Day Headers -->
+        <div class="day-header">Sun</div>
+        <div class="day-header">Mon</div>
+        <div class="day-header">Tue</div>
+        <div class="day-header">Wed</div>
+        <div class="day-header">Thu</div>
+        <div class="day-header">Fri</div>
+        <div class="day-header">Sat</div>
+
+        <!-- Calendar Days -->
+        @foreach (var day in CalendarDays)
+        {
+            <div class="calendar-cell @GetCellClasses(day)"
+                 @onclick="@(day.IsFutureDate ? (() => {}) : (async () => await SelectDate(day.Date)))"
+                 role="gridcell"
+                 tabindex="@(day.IsFutureDate ? -1 : 0)"
+                 aria-label="@day.Date.ToString("MMMM dd, yyyy")">
+                <span class="day-number">@day.Date.Day</span>
+                @if (day.CompletionCount > 0)
+                {
+                    <span class="completion-indicator" style="background-color: @HabitColor"></span>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public HabitModel? Habit { get; set; }
+    [Parameter] public string HabitColor { get; set; } = "#8b5cf6";
+    [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
+    [Parameter] public DateTime? InitialDate { get; set; }
+
+    private DateTime CurrentMonth = DateTime.Today;
+    private DateTime? SelectedDate = null;
+    private List<CalendarDay> CalendarDays = new();
+    private Dictionary<DateOnly, int> CompletionCounts = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (InitialDate.HasValue)
+        {
+            CurrentMonth = InitialDate.Value;
+        }
+        else if (CurrentMonth == default)
+        {
+            CurrentMonth = DateTime.Today;
+        }
+
+        if (Habit != null)
+        {
+            await LoadCompletionData();
+        }
+        
+        LoadCalendar();
+    }
+
+    private async Task LoadCompletionData()
+    {
+        if (Habit == null) return;
+
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            var completions = await HabitService.GetHabitCompletionsForMonthAsync(
+                CurrentMonth.Year, CurrentMonth.Month, userId);
+
+            CompletionCounts = completions
+                .Where(kvp => kvp.Value.Any(hc => hc.HabitId == Habit.Id))
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.FirstOrDefault(hc => hc.HabitId == Habit.Id)?.Count ?? 0
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading completion data: {ex.Message}");
+        }
+    }
+
+    private void LoadCalendar()
+    {
+        CalendarDays.Clear();
+        
+        var firstDayOfMonth = new DateTime(CurrentMonth.Year, CurrentMonth.Month, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        var startingDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+        var startDate = firstDayOfMonth.AddDays(-startingDayOfWeek);
+        var today = DateTime.Today;
+
+        for (int i = 0; i < 42; i++) // 6 weeks * 7 days
+        {
+            var date = startDate.AddDays(i);
+            var dateOnly = DateOnly.FromDateTime(date);
+            var completionCount = CompletionCounts.GetValueOrDefault(dateOnly, 0);
+
+            CalendarDays.Add(new CalendarDay
+            {
+                Date = date,
+                IsCurrentMonth = date.Month == CurrentMonth.Month,
+                IsToday = date.Date == today,
+                IsFutureDate = date.Date > today,
+                CompletionCount = completionCount
+            });
+        }
+    }
+
+    private string GetCellClasses(CalendarDay day)
+    {
+        var classes = new List<string>();
+        
+        if (!day.IsCurrentMonth) classes.Add("other-month");
+        if (day.IsToday) classes.Add("today");
+        if (day.IsFutureDate) classes.Add("future-date");
+        if (day.CompletionCount > 0) classes.Add("has-completion");
+        if (SelectedDate.HasValue && day.Date.Date == SelectedDate.Value.Date) classes.Add("selected");
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetMonthYear()
+    {
+        return CurrentMonth.ToString("MMMM yyyy");
+    }
+
+    private string GetCalendarStyle()
+    {
+        var style = new System.Text.StringBuilder();
+        style.Append($"--habit-primary-color: {HabitColor};");
+        style.Append($"--habit-primary-hover: {GetDarkerColor(HabitColor)};");
+        style.Append($"--habit-primary-light: {GetLighterColor(HabitColor)};");
+        return style.ToString();
+    }
+
+    private string GetDarkerColor(string hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor) || !hexColor.StartsWith("#"))
+            return "#6b46c1";
+
+        try
+        {
+            hexColor = hexColor.Length == 7 ? hexColor.Substring(1) : hexColor;
+            if (hexColor.Length != 6) return "#6b46c1";
+
+            var r = Convert.ToByte(hexColor.Substring(0, 2), 16);
+            var g = Convert.ToByte(hexColor.Substring(2, 2), 16);
+            var b = Convert.ToByte(hexColor.Substring(4, 2), 16);
+
+            r = (byte)Math.Max(0, r - 51);
+            g = (byte)Math.Max(0, g - 51);
+            b = (byte)Math.Max(0, b - 51);
+
+            return $"#{r:X2}{g:X2}{b:X2}";
+        }
+        catch
+        {
+            return "#6b46c1";
+        }
+    }
+
+    private string GetLighterColor(string hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor) || !hexColor.StartsWith("#"))
+            return "rgba(139, 92, 246, 0.1)";
+
+        try
+        {
+            hexColor = hexColor.Length == 7 ? hexColor.Substring(1) : hexColor;
+            if (hexColor.Length != 6) return "rgba(139, 92, 246, 0.1)";
+
+            var r = Convert.ToByte(hexColor.Substring(0, 2), 16);
+            var g = Convert.ToByte(hexColor.Substring(2, 2), 16);
+            var b = Convert.ToByte(hexColor.Substring(4, 2), 16);
+
+            return $"rgba({r}, {g}, {b}, 0.1)";
+        }
+        catch
+        {
+            return "rgba(139, 92, 246, 0.1)";
+        }
+    }
+
+    private async Task PreviousMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(-1);
+        if (Habit != null)
+        {
+            await LoadCompletionData();
+        }
+        LoadCalendar();
+        StateHasChanged();
+    }
+
+    private async Task NextMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(1);
+        if (Habit != null)
+        {
+            await LoadCompletionData();
+        }
+        LoadCalendar();
+        StateHasChanged();
+    }
+
+    private async Task SelectDate(DateTime date)
+    {
+        SelectedDate = date;
+        await OnDateSelected.InvokeAsync(date);
+        StateHasChanged();
+    }
+
+    public class CalendarDay
+    {
+        public DateTime Date { get; set; }
+        public bool IsCurrentMonth { get; set; }
+        public bool IsToday { get; set; }
+        public bool IsFutureDate { get; set; }
+        public int CompletionCount { get; set; }
+    }
+}

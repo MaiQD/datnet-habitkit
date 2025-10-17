@@ -1,4 +1,4 @@
 ---
 alwaysApply: true
 ---
-always auto kill port after done with the session
+Never keep dotnet run running in the background. Always kill it after you are done with the conversation.

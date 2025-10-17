@@ -1,7 +1,7 @@
 @using Microsoft.Extensions.Localization
 @using HabitKitClone.Resources
 
-<div class="habit-card" role="article" aria-labelledby="habit-title-@Habit.Id">
+<div class="habit-card" role="article" aria-labelledby="habit-title-@Habit.Id" style="@GetHabitCardStyle()">
     <div class="habit-header" @onclick="() => OnEditHabit.InvokeAsync(Habit)">
         <div class="habit-icon" style="background-color: @Habit.Color">
             @Habit.Icon
@@ -35,15 +35,25 @@
             <span class="streak-count">@Habit.StreakCount day streak</span>
         </div>
         
-        <ContributionChart Data="Habit.ContributionData" 
-                          Color="Habit.Color" 
-                          HabitId="Habit.Id"
-                          OnCellClick="OnContributionChartClick" />
+        @if (ViewMode == "calendar")
+        {
+            <HabitCalendar Habit="Habit" 
+                          HabitColor="Habit.Color" 
+                          OnDateSelected="OnCalendarDateSelected" />
+        }
+        else
+        {
+            <ContributionChart Data="Habit.ContributionData" 
+                              Color="Habit.Color" 
+                              HabitId="Habit.Id"
+                              OnCellClick="OnContributionChartClick" />
+        }
     </div>
 </div>
 
 @code {
     [Parameter] public HabitModel Habit { get; set; } = new();
+    [Parameter] public string ViewMode { get; set; } = "grid";
     [Parameter] public EventCallback<HabitModel> OnIncrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnDecrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnEditHabit { get; set; }
@@ -53,5 +63,68 @@
     private async Task OnContributionChartClick(ContributionDay? day)
     {
         await OnShowDetail.InvokeAsync(Habit);
+    }
+
+    private async Task OnCalendarDateSelected(DateTime date)
+    {
+        await OnShowDetail.InvokeAsync(Habit);
+    }
+
+    private string GetHabitCardStyle()
+    {
+        var style = new System.Text.StringBuilder();
+        style.Append($"--habit-primary-color: {Habit.Color};");
+        style.Append($"--habit-primary-hover: {GetDarkerColor(Habit.Color)};");
+        style.Append($"--habit-primary-light: {GetLighterColor(Habit.Color)};");
+        return style.ToString();
+    }
+
+    private string GetDarkerColor(string hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor) || !hexColor.StartsWith("#"))
+            return "#6b46c1"; // Default darker purple
+
+        try
+        {
+            hexColor = hexColor.Length == 7 ? hexColor.Substring(1) : hexColor;
+            if (hexColor.Length != 6) return "#6b46c1";
+
+            var r = Convert.ToByte(hexColor.Substring(0, 2), 16);
+            var g = Convert.ToByte(hexColor.Substring(2, 2), 16);
+            var b = Convert.ToByte(hexColor.Substring(4, 2), 16);
+
+            // Darken by 20%
+            r = (byte)Math.Max(0, r - 51);
+            g = (byte)Math.Max(0, g - 51);
+            b = (byte)Math.Max(0, b - 51);
+
+            return $"#{r:X2}{g:X2}{b:X2}";
+        }
+        catch
+        {
+            return "#6b46c1";
+        }
+    }
+
+    private string GetLighterColor(string hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor) || !hexColor.StartsWith("#"))
+            return "rgba(139, 92, 246, 0.1)"; // Default light purple
+
+        try
+        {
+            hexColor = hexColor.Length == 7 ? hexColor.Substring(1) : hexColor;
+            if (hexColor.Length != 6) return "rgba(139, 92, 246, 0.1)";
+
+            var r = Convert.ToByte(hexColor.Substring(0, 2), 16);
+            var g = Convert.ToByte(hexColor.Substring(2, 2), 16);
+            var b = Convert.ToByte(hexColor.Substring(4, 2), 16);
+
+            return $"rgba({r}, {g}, {b}, 0.1)";
+        }
+        catch
+        {
+            return "rgba(139, 92, 246, 0.1)";
+        }
     }
 }

@@ -4,23 +4,23 @@
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 0.75rem;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
 }
 
 .habit-card:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+    border-color: var(--habit-primary-color, var(--primary-color));
+    box-shadow: 0 4px 12px var(--habit-primary-light, rgba(139, 92, 246, 0.1));
 }
 
 /* Habit Header */
 .habit-header {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
     cursor: pointer;
     padding: 0.25rem;
     margin: -0.25rem;
@@ -39,13 +39,13 @@
 }
 
 .habit-icon {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     flex-shrink: 0;
     color: var(--text-on-primary);
 }
@@ -56,20 +56,20 @@
 }
 
 .habit-title {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 0.125rem 0;
     line-height: 1.3;
 }
 
 .habit-description {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.3;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -106,8 +106,8 @@
 }
 
 .completion-button {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     border: 2px solid var(--border-color);
     background-color: var(--bg-tertiary);
@@ -117,12 +117,12 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.75rem;
+    font-size: 0.625rem;
 }
 
 .completion-button:hover {
-    border-color: var(--primary-color);
-    background-color: var(--hover-bg);
+    border-color: var(--habit-primary-color, var(--primary-color));
+    background-color: var(--habit-primary-light, var(--hover-bg));
     color: var(--text-primary);
 }
 
@@ -137,31 +137,31 @@
 }
 
 .plus-button:hover {
-    border-color: var(--success-color);
-    background-color: rgba(35, 134, 54, 0.1);
-    color: var(--success-color);
+    border-color: var(--habit-primary-color, var(--success-color));
+    background-color: var(--habit-primary-light, rgba(35, 134, 54, 0.1));
+    color: var(--habit-primary-color, var(--success-color));
 }
 
 .completion-count {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
-    min-width: 24px;
+    min-width: 20px;
     text-align: center;
 }
 
 /* Habit Progress */
 .habit-progress {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     cursor: default;
 }
 
 .progress-summary {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
 }
 
 .streak-count {
-    font-size: 0.75rem;
+    font-size: 0.625rem;
     color: var(--text-secondary);
     font-weight: 500;
 }

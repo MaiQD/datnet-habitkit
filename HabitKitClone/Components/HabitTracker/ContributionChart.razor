@@ -18,19 +18,27 @@
                     <div class="chart-row">
                         <div class="day-label">@Localizer[dayName]</div>
                         <div class="day-cells">
-                            @for (int week = 0; week < 53; week++)
+                            @for (int week = 0; week < 52; week++)
                             {
                                 var weekData = weeks.FirstOrDefault(w => w.Key == week)?.ToList() ?? new List<ContributionDay>();
                                 var dayData = weekData.FirstOrDefault(d => (int)d.Date.DayOfWeek == day);
                                 var count = dayData?.Count ?? 0;
+                                var isFuture = IsFutureDate(dayData?.Date);
                                 
-                                <div class="chart-cell level-@GetLevelForCount(count)"
-                                     title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
-                                     role="button"
-                                     tabindex="0"
-                                     @onclick="() => OnCellClick.InvokeAsync(dayData)"
-                                     @onkeypress="@(async (e) => { if (e.Key == "Enter" || e.Key == " ") { await OnCellClick.InvokeAsync(dayData); } })">
-                                </div>
+                                @if (!isFuture)
+                                {
+                                    <div class="chart-cell level-@GetLevelForCount(count)"
+                                         title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
+                                         role="button"
+                                         tabindex="0"
+                                         @onclick="() => OnCellClick.InvokeAsync(dayData)"
+                                         @onkeypress="@(async (e) => { if (e.Key == "Enter" || e.Key == " ") { await OnCellClick.InvokeAsync(dayData); } })">
+                                    </div>
+                                }
+                                else
+                                {
+                                    break;
+                                }
                             }
                         </div>
                     </div>
@@ -52,10 +60,11 @@
     protected override void OnParametersSet()
     {
         var style = new System.Text.StringBuilder();
-        style.Append($"--habit-color-level-1: {HexToRgba(Color, 0.4)};");
-        style.Append($"--habit-color-level-2: {HexToRgba(Color, 0.6)};");
-        style.Append($"--habit-color-level-3: {HexToRgba(Color, 0.8)};");
-        style.Append($"--habit-color-level-4: {HexToRgba(Color, 1.0)};");
+        style.Append($"--chart-habit-color-level-0: var(--chart-future-color);");
+        style.Append($"--chart-habit-color-level-1: {HexToRgba(Color, 0.4)};");
+        style.Append($"--chart-habit-color-level-2: {HexToRgba(Color, 0.6)};");
+        style.Append($"--chart-habit-color-level-3: {HexToRgba(Color, 0.8)};");
+        style.Append($"--chart-habit-color-level-4: {HexToRgba(Color, 1.0)};");
         ChartStyle = style.ToString();
         base.OnParametersSet();
     }
@@ -139,5 +148,11 @@
             <= 5 => 3,
             _ => 4,
         };
+    }
+
+    private bool IsFutureDate(DateTime? date)
+    {
+        if (!date.HasValue) return false;
+        return date.Value.Date > DateTime.Today;
     }
 }

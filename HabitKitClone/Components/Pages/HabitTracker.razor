@@ -68,6 +68,7 @@
             @foreach (var habit in FilteredHabits)
             {
                 <HabitCard Habit="habit" 
+                           ViewMode="CurrentView"
                            OnIncrementCompletion="IncrementHabitCompletion"
                            OnDecrementCompletion="DecrementHabitCompletion"
                            OnEditHabit="EditHabit"
@@ -252,21 +253,8 @@
             var userId = await UserContextService.GetCurrentUserIdAsync();
             var completions = await HabitService.GetHabitCompletionsForYearAsync(userId);
             
-            // Update contribution data for this habit
-            var habitCompletions = completions.Values
-                .SelectMany(list => list)
-                .Where(hc => hc.HabitId == habit.Id)
-                .ToList();
-            
-            habit.ContributionData = habitCompletions
-                .Select(hc => new ContributionDay
-                {
-                    Date = hc.CompletionDate.ToDateTime(TimeOnly.MinValue),
-                    Level = hc.Count,
-                    Color = habit.Color,
-                    Count = hc.Count
-                })
-                .ToList();
+            // Use the same logic as BuildContributionData to ensure consistency
+            habit.ContributionData = BuildContributionData(habit.Id, habit.Color, completions);
         }
         catch (Exception ex)
         {
@@ -405,21 +393,23 @@
         Dictionary<DateOnly, List<HabitCompletionDto>> completions)
     {
         var data = new List<ContributionDay>();
-        var startDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-365));
+        var today = DateTime.Today;
+        var startDate = today.AddDays(-(52 * 7 - 1)); // 52 weeks minus 1 day to get exactly 364 days
         
-        for (int i = 0; i < 365; i++)
+        for (int i = 0; i < 364; i++)
         {
             var date = startDate.AddDays(i);
+            var dateOnly = DateOnly.FromDateTime(date);
             var count = 0;
             
-            if (completions.TryGetValue(date, out var dayCompletions))
+            if (completions.TryGetValue(dateOnly, out var dayCompletions))
             {
                 count = dayCompletions.FirstOrDefault(c => c.HabitId == habitId)?.Count ?? 0;
             }
             
             data.Add(new ContributionDay
             {
-                Date = date.ToDateTime(TimeOnly.MinValue),
+                Date = date,
                 Level = count,
                 Count = count,
                 Color = color
