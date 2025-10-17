@@ -1,0 +1,42 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Node modules (if any)
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Fly.io
+fly.toml

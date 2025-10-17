@@ -107,6 +107,9 @@ app.UseRequestLocalization();
 
 app.UseAntiforgery();
 
+// Add health check endpoint
+app.MapGet("/health", () => "OK");
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
@@ -114,9 +117,17 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-// Seed demo data
+// Apply database migrations and seed demo data
 using (var scope = app.Services.CreateScope())
 {
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    
+    // Apply pending migrations in production
+    if (!app.Environment.IsDevelopment())
+    {
+        await context.Database.MigrateAsync();
+    }
+    
     var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
     await seeder.SeedAsync();
 }
