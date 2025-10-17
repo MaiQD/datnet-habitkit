@@ -2,7 +2,7 @@
 @using HabitKitClone.Resources
 
 <div class="habit-card" role="article" aria-labelledby="habit-title-@Habit.Id">
-    <div class="habit-header">
+    <div class="habit-header" @onclick="() => OnEditHabit.InvokeAsync(Habit)">
         <div class="habit-icon" style="background-color: @Habit.Color">
             @Habit.Icon
         </div>
@@ -11,7 +11,7 @@
             <p class="habit-description">@Habit.Description</p>
         </div>
         <div class="habit-actions">
-            <div class="completion-controls">
+            <div class="completion-controls" @onclick:stopPropagation="true">
                 <button class="completion-button minus-button"
                         aria-label="Decrement completion count"
                         @onclick="() => OnDecrementCompletion.InvokeAsync(Habit)">
@@ -24,10 +24,13 @@
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
+            <div class="edit-indicator">
+                <i class="fas fa-chevron-right"></i>
+            </div>
         </div>
     </div>
     
-    <div class="habit-progress">
+    <div class="habit-progress" @onclick:stopPropagation="true">
         <div class="progress-summary">
             <span class="streak-count">@Habit.StreakCount day streak</span>
         </div>

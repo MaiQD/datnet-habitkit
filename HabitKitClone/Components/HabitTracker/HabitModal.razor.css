@@ -86,9 +86,16 @@
 .modal-footer {
     display: flex;
     gap: 0.75rem;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     padding: 1.25rem;
     border-top: 1px solid var(--border-color);
+}
+
+.footer-right {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
 }
 
 /* Form Styles */
@@ -227,6 +234,34 @@ select.form-control {
     outline-offset: 2px;
 }
 
+.btn-delete {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    min-width: 80px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--error-color);
+    border-color: var(--error-color);
+    color: var(--text-on-primary);
+}
+
+.btn-delete:hover {
+    background-color: var(--error-hover);
+    border-color: var(--error-hover);
+}
+
+.btn-delete:focus {
+    outline: 2px solid var(--error-color);
+    outline-offset: 2px;
+}
+
 /* Responsive Design */
 @media (min-width: 768px) {
     .modal-content {
@@ -297,6 +332,43 @@ select.form-control {
     margin-top: 1rem;
 }
 
+/* Delete Confirmation Dialog */
+.delete-confirmation {
+    z-index: 1001;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.delete-modal {
+    max-width: 400px;
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+.delete-modal .modal-body {
+    text-align: center;
+}
+
+.delete-modal .modal-body p {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.delete-modal .modal-body p:last-child {
+    margin-bottom: 0;
+}
+
+.delete-warning {
+    color: var(--error-color) !important;
+    font-weight: 500;
+    font-size: 0.8rem !important;
+}
+
+.delete-modal .modal-footer {
+    justify-content: center;
+    gap: 1rem;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .modal-content {
@@ -310,5 +382,9 @@ select.form-control {
     .color-option.selected {
         border-color: var(--text-on-primary);
         box-shadow: 0 0 0 3px var(--primary-color);
+    }
+    
+    .btn-delete {
+        border: 2px solid var(--text-primary);
     }
 }
