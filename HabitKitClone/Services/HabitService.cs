@@ -20,6 +20,7 @@ public class HabitService : IHabitService
     public async Task<IEnumerable<HabitDto>> GetUserHabitsAsync(string userId)
     {
         var habits = await _context.Habits
+            .Include(h => h.Category)
             .Where(h => h.UserId == userId && h.IsActive)
             .OrderBy(h => h.CreatedAt)
             .ToListAsync();
@@ -43,6 +44,7 @@ public class HabitService : IHabitService
     public async Task<HabitDto?> GetHabitByIdAsync(int habitId, string userId)
     {
         var habit = await _context.Habits
+            .Include(h => h.Category)
             .FirstOrDefaultAsync(h => h.Id == habitId && h.UserId == userId);
 
         if (habit == null) return null;

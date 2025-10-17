@@ -5,7 +5,8 @@ public class HabitModel
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public string Category { get; set; } = "study";
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
     public string Icon { get; set; } = "📝";
     public string Color { get; set; } = "#238636";
     public int TodayCount { get; set; }

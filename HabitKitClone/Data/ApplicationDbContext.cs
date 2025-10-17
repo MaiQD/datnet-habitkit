@@ -8,11 +8,28 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Habit> Habits { get; set; }
     public DbSet<HabitCompletion> HabitCompletions { get; set; }
+    public DbSet<Category> Categories { get; set; }
     public DbSet<UserSettings> UserSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // Configure Category entity
+        builder.Entity<Category>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Color).HasMaxLength(7).HasDefaultValue("#3B82F6");
+            entity.Property(e => e.Icon).HasMaxLength(10).HasDefaultValue("📝");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("datetime('now')");
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // Configure Habit entity
         builder.Entity<Habit>(entity =>
@@ -31,6 +48,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Category)
+                .WithMany(c => c.Habits)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict); // Don't delete category if habits exist
         });
 
         // Configure HabitCompletion entity

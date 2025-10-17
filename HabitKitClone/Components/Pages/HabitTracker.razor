@@ -12,6 +12,7 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 @inject IHabitService HabitService
+@inject ICategoryService CategoryService
 @inject UserContextService UserContextService
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -42,13 +43,19 @@
 
     <!-- Category Filters -->
     <section class="category-filters" role="tablist" aria-label="Habit categories">
+        <button class="category-filter @(SelectedCategory == "all" ? "active" : "")"
+                role="tab"
+                aria-selected="@(SelectedCategory == "all" ? "true" : "false")"
+                @onclick="@(() => SelectCategory("all"))">
+            All
+        </button>
         @foreach (var category in Categories)
         {
-            <button class="category-filter @(SelectedCategory == category.Key ? "active" : "")"
+            <button class="category-filter @(SelectedCategory == category.Id.ToString() ? "active" : "")"
                     role="tab"
-                    aria-selected="@(SelectedCategory == category.Key ? "true" : "false")"
-                    @onclick="() => SelectCategory(category.Key)">
-                @category.Value
+                    aria-selected="@(SelectedCategory == category.Id.ToString() ? "true" : "false")"
+                    @onclick="() => SelectCategory(category.Id.ToString())">
+                @category.Name
             </button>
         }
     </section>
@@ -71,8 +78,8 @@
             <div class="empty-state">
                 <div class="empty-icon">📝</div>
                 <h2>No habits found</h2>
-                <p>@(SelectedCategory == "all" ? "Create your first habit to get started!" : $"No {SelectedCategory} habits found.")</p>
-                <button class="btn-primary" @onclick="ShowAddHabitModal">
+                <p>@(SelectedCategory == "all" ? "Create your first habit to get started!" : $"No {GetSelectedCategoryName()} habits found.")</p>
+                <button class="btn add-button" @onclick="ShowAddHabitModal">
                     <i class="fas fa-plus"></i> Add Habit
                 </button>
             </div>
@@ -116,22 +123,16 @@
     private bool ShowModal = false;
     private HabitModel? EditingHabit;
     
-    private readonly Dictionary<string, string> Categories = new()
-    {
-        { "all", "All" },
-        { "study", "Study" },
-        { "health", "Health" },
-        { "work", "Work" }
-    };
-
+    private List<CategoryDto> Categories = new();
     private List<HabitModel> Habits = new();
     private List<HabitModel> FilteredHabits => 
         SelectedCategory == "all" 
             ? Habits 
-            : Habits.Where(h => h.Category.Equals(SelectedCategory, StringComparison.OrdinalIgnoreCase)).ToList();
+            : Habits.Where(h => h.CategoryId.ToString() == SelectedCategory).ToList();
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadCategories();
         await LoadHabits();
     }
 
@@ -282,9 +283,10 @@
                 {
                     Name = habit.Title,
                     Description = habit.Description,
+                    CategoryId = habit.CategoryId,
                     Color = habit.Color,
                     Icon = habit.Icon,
-                    Frequency = HabitFrequency.Daily, // Map from category or add frequency field
+                    Frequency = HabitFrequency.Daily,
                     TargetCount = 1,
                     IsActive = true
                 };
@@ -297,6 +299,7 @@
                 {
                     Name = habit.Title,
                     Description = habit.Description,
+                    CategoryId = habit.CategoryId,
                     Color = habit.Color,
                     Icon = habit.Icon,
                     Frequency = HabitFrequency.Daily,
@@ -326,6 +329,13 @@
     {
         Console.WriteLine("100");
         NavigationManager.NavigateTo("/settings");
+    }
+
+    private string GetSelectedCategoryName()
+    {
+        if (SelectedCategory == "all") return "habits";
+        var category = Categories.FirstOrDefault(c => c.Id.ToString() == SelectedCategory);
+        return category?.Name.ToLower() ?? "habits";
     }
 
     private string MapFrequencyToCategory(HabitFrequency frequency)
@@ -384,6 +394,21 @@
         return data;
     }
 
+    private async Task LoadCategories()
+    {
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            // Load only categories that have habits for this user
+            Categories = (await CategoryService.GetCategoriesWithHabitsAsync(userId)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading categories: {ex.Message}");
+            Categories = new List<CategoryDto>();
+        }
+    }
+
     private async Task LoadHabits()
     {
         try
@@ -398,7 +423,8 @@
                 Id = h.Id,
                 Title = h.Name,
                 Description = h.Description,
-                Category = MapFrequencyToCategory(h.Frequency),
+                CategoryId = h.CategoryId,
+                CategoryName = h.CategoryName,
                 Icon = h.Icon,
                 Color = h.Color,
                 TodayCount = completions.TryGetValue(today, out var todayCompletions) 

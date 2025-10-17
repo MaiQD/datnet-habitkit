@@ -1,10 +1,6 @@
 @page "/settings"
 @using HabitKitClone.Services
-@using HabitKitClone.Resources
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Localization
-@using Microsoft.AspNetCore.Components.Web
-@using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Identity
 @using HabitKitClone.Data
 @inject IStringLocalizer<SharedResource> Localizer
@@ -67,7 +63,7 @@
                         <span class="settings-label">Theme</span>
                     </div>
                     <div class="settings-toggle">
-                        <div class="toggle @(currentTheme == "dark" ? "active" : "")" @onclick="ToggleTheme">
+                        <div class="toggle @(_currentTheme == "dark" ? "active" : "")" @onclick="ToggleTheme">
                             <div class="toggle-handle"></div>
                         </div>
                     </div>
@@ -103,7 +99,7 @@
                     <i class="fas fa-chevron-right settings-arrow"></i>
                 </div>
                 
-                <div class="settings-item logout-item" @onclick="Logout">
+                <div class="settings-item" @onclick="Logout">
                     <div class="settings-item-left">
                         <div class="settings-icon red">
                             <i class="fas fa-sign-out-alt"></i>
@@ -118,15 +114,6 @@
         <div class="settings-section">
             <h4 class="section-title">Help</h4>
             <div class="settings-list">
-                <div class="settings-item" @onclick="ShowOnboarding">
-                    <div class="settings-item-left">
-                        <div class="settings-icon orange">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <span class="settings-label">Show Onboarding</span>
-                    </div>
-                    <i class="fas fa-chevron-right settings-arrow"></i>
-                </div>
                 
                 <div class="settings-item" @onclick="ShowWhatsNew">
                     <div class="settings-item-left">
@@ -164,16 +151,6 @@
                     <i class="fas fa-chevron-right settings-arrow"></i>
                 </div>
                 
-                <div class="settings-item" @onclick="OpenTwitter">
-                    <div class="settings-item-left">
-                        <div class="settings-icon blue">
-                            <i class="fab fa-twitter"></i>
-                        </div>
-                        <span class="settings-label">Follow on X</span>
-                    </div>
-                    <i class="fas fa-chevron-right settings-arrow"></i>
-                </div>
-                
                 <div class="settings-item" @onclick="OpenPrivacyPolicy">
                     <div class="settings-item-left">
                         <div class="settings-icon pink">
@@ -189,7 +166,7 @@
 </div>
 
 @code {
-    private string currentTheme = "dark";
+    private string _currentTheme = "dark";
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,7 +176,7 @@
             var settings = await UserSettingsService.GetUserSettingsAsync(userId);
             if (settings != null)
             {
-                currentTheme = settings.Theme;
+                _currentTheme = settings.Theme;
             }
         }
     }
@@ -211,14 +188,14 @@
 
     private async Task ToggleTheme()
     {
-        currentTheme = currentTheme == "dark" ? "light" : "dark";
+        _currentTheme = _currentTheme == "dark" ? "light" : "dark";
         
         var userId = await UserContext.GetCurrentUserIdAsync();
         if (!string.IsNullOrEmpty(userId))
         {
-            await UserSettingsService.UpdateThemeAsync(userId, currentTheme);
-            await JSRuntime.InvokeVoidAsync("setCookie", "theme", currentTheme, 365);
-            await JSRuntime.InvokeVoidAsync("applyTheme", currentTheme);
+            await UserSettingsService.UpdateThemeAsync(userId, _currentTheme);
+            await JSRuntime.InvokeVoidAsync("setCookie", "theme", _currentTheme, 365);
+            await JSRuntime.InvokeVoidAsync("applyTheme", _currentTheme);
         }
         
         StateHasChanged();
@@ -254,12 +231,6 @@
         Console.WriteLine("Navigate to Reorder habits");
     }
 
-    private void ShowOnboarding()
-    {
-        // TODO: Implement onboarding flow
-        Console.WriteLine("Show onboarding");
-    }
-
     private void ShowWhatsNew()
     {
         // TODO: Implement what's new modal
@@ -277,13 +248,7 @@
         // TODO: Open website in browser
         Console.WriteLine("Open website");
     }
-
-    private void OpenTwitter()
-    {
-        // TODO: Open Twitter profile
-        Console.WriteLine("Open Twitter");
-    }
-
+    
     private void OpenPrivacyPolicy()
     {
         // TODO: Open privacy policy

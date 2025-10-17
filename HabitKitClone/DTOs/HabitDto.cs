@@ -7,6 +7,8 @@ public class HabitDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = string.Empty; // For display purposes
     public string Color { get; set; } = "#3B82F6";
     public string Icon { get; set; } = "📝";
     public HabitFrequency Frequency { get; set; } = HabitFrequency.Daily;
@@ -25,6 +27,7 @@ public class CreateHabitDto
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public int CategoryId { get; set; }
     public string Color { get; set; } = "#3B82F6";
     public string Icon { get; set; } = "📝";
     public HabitFrequency Frequency { get; set; } = HabitFrequency.Daily;
@@ -36,6 +39,7 @@ public class UpdateHabitDto
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public int CategoryId { get; set; }
     public string Color { get; set; } = "#3B82F6";
     public string Icon { get; set; } = "📝";
     public HabitFrequency Frequency { get; set; } = HabitFrequency.Daily;

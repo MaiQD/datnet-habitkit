@@ -10,6 +10,7 @@ public class MappingProfile : Profile
     {
         // Habit mappings
         CreateMap<Habit, HabitDto>()
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
             .ForMember(dest => dest.CurrentStreak, opt => opt.Ignore())
             .ForMember(dest => dest.LongestStreak, opt => opt.Ignore())
             .ForMember(dest => dest.CompletionRate, opt => opt.Ignore())
@@ -22,5 +23,11 @@ public class MappingProfile : Profile
         CreateMap<HabitCompletion, HabitCompletionDto>();
         CreateMap<CreateHabitCompletionDto, HabitCompletion>();
         CreateMap<UpdateHabitCompletionDto, HabitCompletion>();
+        
+        // Category mappings
+        CreateMap<Category, CategoryDto>()
+            .ForMember(dest => dest.HabitCount, opt => opt.Ignore());
+        CreateMap<CreateCategoryDto, Category>();
+        CreateMap<UpdateCategoryDto, Category>();
     }
 }

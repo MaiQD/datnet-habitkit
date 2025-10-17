@@ -1,5 +1,9 @@
 @using Microsoft.Extensions.Localization
 @using HabitKitClone.Resources
+@using HabitKitClone.Services
+@using HabitKitClone.DTOs
+@inject ICategoryService CategoryService
+@inject UserContextService UserContextService
 
 <div class="modal-overlay" @onclick="OnCancel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-content" @onclick:stopPropagation="true">
@@ -31,10 +35,18 @@
             
             <div class="form-group">
                 <label for="habit-category" class="form-label">Category</label>
-                <select id="habit-category" class="form-control" @bind="Habit.Category">
-                    <option value="study">Study</option>
-                    <option value="health">Health</option>
-                    <option value="work">Work</option>
+                <select id="habit-category" class="form-control" @bind="Habit.CategoryId">
+                    @if (AvailableCategories.Any())
+                    {
+                        @foreach (var category in AvailableCategories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="0">No categories available</option>
+                    }
                 </select>
             </div>
             
@@ -75,12 +87,46 @@
     [Parameter] public EventCallback<HabitModel> OnSave { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 
+    private List<CategoryDto> AvailableCategories = new();
+
     private readonly string[] AvailableColors = new[]
     {
         "#e74c3c", "#e67e22", "#f39c12", "#f1c40f", "#2ecc71", 
         "#27ae60", "#1abc9c", "#16a085", "#3498db", "#2980b9", 
         "#9b59b6", "#8e44ad", "#e91e63", "#ad1457", "#34495e"
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        try
+        {
+            var userId = await UserContextService.GetCurrentUserIdAsync();
+            AvailableCategories = (await CategoryService.GetUserCategoriesAsync(userId)).ToList();
+            
+            // If no categories exist, create a default one
+            if (!AvailableCategories.Any())
+            {
+                var defaultCategory = new CreateCategoryDto
+                {
+                    Name = "General",
+                    Color = "#6B7280",
+                    Icon = "📝"
+                };
+                var createdCategory = await CategoryService.CreateCategoryAsync(defaultCategory, userId);
+                AvailableCategories.Add(createdCategory);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading categories: {ex.Message}");
+            AvailableCategories = new List<CategoryDto>();
+        }
+    }
 
     private async Task SaveHabit()
     {

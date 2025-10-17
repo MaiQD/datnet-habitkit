@@ -14,6 +14,9 @@ public class Habit
     [StringLength(500)]
     public string? Description { get; set; }
     
+    public int CategoryId { get; set; } // Foreign key to Category
+    public Category Category { get; set; } = null!; // Navigation property
+    
     public string Color { get; set; } = "#3B82F6"; // Default blue color
     
     public string Icon { get; set; } = "📝"; // Default icon
