@@ -1,5 +1,7 @@
 @using Microsoft.Extensions.Localization
 @using HabitKitClone.Resources
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JSRuntime
 
 <div class="habit-card" role="article" aria-labelledby="habit-title-@Habit.Id" style="@GetHabitCardStyle()">
     <div class="habit-header" @onclick="() => OnEditHabit.InvokeAsync(Habit)">
@@ -54,11 +56,6 @@
 @code {
     [Parameter] public HabitModel Habit { get; set; } = new();
     [Parameter] public string ViewMode { get; set; } = "grid";
-
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-    }
     [Parameter] public EventCallback<HabitModel> OnIncrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnDecrementCompletion { get; set; }
     [Parameter] public EventCallback<HabitModel> OnEditHabit { get; set; }
@@ -82,6 +79,23 @@
         style.Append($"--habit-primary-hover: {GetDarkerColor(Habit.Color)};");
         style.Append($"--habit-primary-light: {GetLighterColor(Habit.Color)};");
         return style.ToString();
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        // Force re-render to ensure CSS custom properties are applied on iOS
+        StateHasChanged();
+        
+        // Apply iOS-specific fixes
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("fixIOSColors");
+        }
+        catch
+        {
+            // Ignore JS errors
+        }
     }
 
     private string GetDarkerColor(string hexColor)

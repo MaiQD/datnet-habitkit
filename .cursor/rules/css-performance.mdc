@@ -1,0 +1,245 @@
+---
+globs: *.css,*.razor.css
+description: CSS Performance and Mobile Optimization Guidelines
+---
+
+# CSS Performance and Mobile Optimization Guidelines
+
+## Mobile-First Approach
+Always start with mobile styles and enhance for larger screens:
+```css
+/* Mobile first - base styles */
+.component {
+    padding: 1rem;
+    font-size: 0.875rem;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .component {
+        padding: 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Desktop and up */
+@media (min-width: 1024px) {
+    .component {
+        padding: 2rem;
+        font-size: 1.125rem;
+    }
+}
+```
+
+## Performance-Critical CSS Properties
+
+### Expensive Properties (Use Sparingly)
+❌ **Avoid these in animations or frequent updates:**
+- `box-shadow` with blur
+- `backdrop-filter`
+- `border-radius` with large values
+- Complex `gradient` backgrounds
+- `filter` effects
+
+### Hardware-Accelerated Properties
+✅ **Use these for smooth animations:**
+- `transform: translateX/Y/Z()`
+- `opacity`
+- `background-color`
+- `border-color`
+
+## Animation Performance
+
+### Efficient Animations
+```css
+/* ✅ Good - Hardware accelerated */
+.smooth-animation {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.smooth-animation:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+/* ❌ Avoid - Layout-triggering properties */
+.expensive-animation {
+    transition: width 0.2s ease, height 0.2s ease;
+}
+```
+
+### iOS-Specific Optimizations
+```css
+@supports (-webkit-touch-callout: none) {
+    /* Disable expensive effects on iOS */
+    .modal-overlay {
+        backdrop-filter: none !important;
+        background-color: rgba(0, 0, 0, 0.95) !important;
+    }
+    
+    /* Remove transforms that cause lag */
+    .hover-effect:hover {
+        transform: none !important;
+    }
+}
+```
+
+## Touch-Friendly Design
+
+### Minimum Touch Targets
+```css
+/* Ensure touch targets are at least 44px */
+.touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.75rem;
+}
+```
+
+### Touch-Specific Styles
+```css
+/* Optimize for touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .hover-only {
+        display: none;
+    }
+    
+    .touch-friendly {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+```
+
+## Scrolling Performance
+
+### Smooth Scrolling
+```css
+/* Enable hardware-accelerated scrolling */
+.scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+}
+
+/* Optimize scroll performance */
+.scrollable-content {
+    will-change: scroll-position;
+    contain: layout style paint;
+}
+```
+
+### Scrollbar Styling
+```css
+/* Custom scrollbars for better UX */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
+}
+```
+
+## CSS Custom Properties Best Practices
+
+### Theme Variables
+```css
+:root {
+    /* Use semantic naming */
+    --bg-primary: #0d1117;
+    --text-primary: #c9d1d9;
+    --border-color: #30363d;
+}
+
+/* Provide fallbacks */
+.component {
+    background-color: var(--bg-primary, #ffffff);
+    color: var(--text-primary, #000000);
+}
+```
+
+### Dynamic Properties
+When setting CSS custom properties via JavaScript:
+```javascript
+// ✅ Correct - Escaped for Razor
+style.textContent = `@@media screen { ... }`;
+
+// ❌ Incorrect - Causes Razor compilation error
+style.textContent = `@media screen { ... }`;
+```
+
+## Layout Performance
+
+### Efficient Layouts
+```css
+/* Use CSS Grid for complex layouts */
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+/* Use Flexbox for simple layouts */
+.flex-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+```
+
+### Containment
+```css
+/* Use CSS containment for performance */
+.isolated-component {
+    contain: layout style paint;
+}
+
+/* Contain size changes */
+.size-contained {
+    contain: size;
+}
+```
+
+## Responsive Design Patterns
+
+### Breakpoint Strategy
+```css
+/* Mobile first breakpoints */
+/* Small mobile: 320px+ */
+/* Mobile: 375px+ */
+/* Tablet: 768px+ */
+/* Desktop: 1024px+ */
+/* Large desktop: 1440px+ */
+```
+
+### Fluid Typography
+```css
+/* Responsive typography */
+.responsive-text {
+    font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+    line-height: clamp(1.4, 2vw, 1.6);
+}
+```
+
+## Performance Monitoring
+
+### CSS Performance Tools
+- Chrome DevTools Performance tab
+- CSS containment analysis
+- Layout thrashing detection
+- Animation performance profiling
+
+### Optimization Checklist
+- [ ] Use hardware-accelerated properties
+- [ ] Minimize layout-triggering changes
+- [ ] Implement proper touch targets
+- [ ] Test on actual mobile devices
+- [ ] Validate CSS custom properties
+- [ ] Check animation performance
+- [ ] Verify scrolling smoothness

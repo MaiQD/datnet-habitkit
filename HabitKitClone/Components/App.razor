@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <base href="/" />
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["theme.css"]" />
@@ -70,6 +70,90 @@
                 element.scrollLeft = element.scrollWidth;
             }
         };
+
+        // iOS Safari CSS custom properties fix
+        window.fixIOSColors = function() {
+            // Detect iOS Safari
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            
+            if (isIOS && isSafari) {
+                // Force re-application of CSS custom properties
+                setTimeout(function() {
+                    var elements = document.querySelectorAll('[style*="--habit-primary-color"]');
+                    elements.forEach(function(el) {
+                        var style = el.getAttribute('style');
+                        el.setAttribute('style', style);
+                    });
+                }, 100);
+            }
+        };
+
+        // iOS Performance Optimizations
+        window.optimizeIOSPerformance = function() {
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            if (isIOS) {
+                // Disable expensive CSS effects on iOS
+                var style = document.createElement('style');
+                style.textContent = `
+                    /* iOS Performance Optimizations */
+                    @@media screen and (-webkit-min-device-pixel-ratio: 1) {
+                        .modal-overlay {
+                            backdrop-filter: none !important;
+                            background-color: rgba(0, 0, 0, 0.9) !important;
+                        }
+                        
+                        .contribution-cell:hover,
+                        .chart-cell:hover {
+                            transform: none !important;
+                        }
+                        
+                        .btn:hover:not(:disabled) {
+                            transform: none !important;
+                        }
+                        
+                        .pro-banner:hover {
+                            transform: none !important;
+                        }
+                        
+                        .view-button:hover {
+                            transform: none !important;
+                        }
+                        
+                        /* Reduce animation complexity */
+                        * {
+                            transition-duration: 0.1s !important;
+                        }
+                        
+                        /* Disable expensive transforms */
+                        .habit-header:active {
+                            transform: none !important;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Prevent zoom on double tap
+                var lastTouchEnd = 0;
+                document.addEventListener('touchend', function(event) {
+                    var now = (new Date()).getTime();
+                    if (now - lastTouchEnd <= 300) {
+                        event.preventDefault();
+                    }
+                    lastTouchEnd = now;
+                }, false);
+                
+                // Optimize scrolling
+                document.body.style.webkitOverflowScrolling = 'touch';
+            }
+        };
+
+        // Initialize iOS fixes when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            window.fixIOSColors();
+            window.optimizeIOSPerformance();
+        });
     </script>
 </body>
 

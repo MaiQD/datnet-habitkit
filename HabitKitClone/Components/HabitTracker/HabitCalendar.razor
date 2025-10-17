@@ -33,7 +33,7 @@
         <!-- Calendar Days -->
         @foreach (var day in CalendarDays)
         {
-            <div class="calendar-cell @GetCellClasses(day)"
+            <div class="@GetCellClass(day)"
                  style="@GetCellStyle(day)"
                  @onclick="@(day.IsFutureDate ? (() => {}) : (async () => await SelectDate(day.Date)))"
                  role="gridcell"
@@ -253,6 +253,31 @@
         }
         
         return "";
+    }
+    
+    private string GetCellClass(CalendarDay day)
+    {
+        var classes = new List<string> { "calendar-cell" };
+        
+        if (day.IsFutureDate)
+        {
+            classes.Add("future-date");
+        }
+        else if (day.IsToday)
+        {
+            classes.Add("today");
+        }
+        else if (day.CompletionCount > 0)
+        {
+            classes.Add("has-completion");
+        }
+        
+        if (!day.IsCurrentMonth)
+        {
+            classes.Add("other-month");
+        }
+        
+        return string.Join(" ", classes);
     }
 
     public class CalendarDay

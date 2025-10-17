@@ -38,6 +38,13 @@
     transform: scale(0.98);
 }
 
+/* iOS-specific optimizations */
+@supports (-webkit-touch-callout: none) {
+    .habit-header:active {
+        transform: none;
+    }
+}
+
 .habit-icon {
     width: 36px;
     height: 36px;

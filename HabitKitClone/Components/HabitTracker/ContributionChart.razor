@@ -130,9 +130,20 @@
     private string GetCellStyle(int count)
     {
         var level = GetLevelForCount(count);
+        
+        if (level == 0)
+        {
+            return "background-color: var(--chart-future-color);";
+        }
+        
+        // Use CSS classes instead of inline styles for better iOS compatibility
+        return $"background-color: {GetColorForLevel(level)};";
+    }
+    
+    private string GetColorForLevel(int level)
+    {
         var opacity = level switch
         {
-            0 => 0.0,
             1 => 0.4,
             2 => 0.6,
             3 => 0.8,
@@ -140,12 +151,6 @@
             _ => 0.0
         };
         
-        if (level == 0)
-        {
-            return "background-color: var(--chart-future-color) !important;";
-        }
-        
-        var color = ColorUtils.HexToRgba(Color, opacity);
-        return $"background-color: {color} !important;";
+        return ColorUtils.HexToRgba(Color, opacity);
     }
 }

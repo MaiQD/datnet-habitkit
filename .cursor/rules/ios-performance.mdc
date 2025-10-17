@@ -1,0 +1,87 @@
+---
+globs: *.razor,*.razor.css,*.css,*.js
+description: iOS Performance Optimization Guidelines
+---
+
+# iOS Performance Optimization Guidelines
+
+## Viewport Configuration
+Always use proper viewport settings for mobile apps:
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+```
+
+## CSS Performance Best Practices
+
+### Hardware Acceleration
+Enable hardware acceleration for iOS:
+```css
+@supports (-webkit-touch-callout: none) {
+    * {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+}
+```
+
+### iOS-Specific Optimizations
+- Disable expensive effects like `backdrop-filter` on iOS
+- Remove `transform` effects on hover/active states for touch devices
+- Use `-webkit-overflow-scrolling: touch` for smooth scrolling
+- Reduce animation duration to 0.1s on iOS
+
+### Performance Anti-Patterns
+❌ **Avoid these on iOS:**
+- `backdrop-filter: blur()` - Very expensive
+- Complex `transform` animations on hover
+- Multiple simultaneous animations
+- Heavy box-shadow effects
+
+✅ **Use these instead:**
+- Solid background colors instead of blur
+- Simple opacity/color transitions
+- Hardware-accelerated properties
+- Optimized animation timing
+
+## JavaScript Performance
+
+### iOS Detection
+```javascript
+var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+```
+
+### Touch Event Optimization
+- Prevent double-tap zoom
+- Use `touchstart` instead of `click` for better responsiveness
+- Implement proper touch scrolling with `-webkit-overflow-scrolling: touch`
+
+### Dynamic CSS Injection
+When injecting CSS via JavaScript in Razor files, escape `@` symbols:
+```javascript
+// ✅ Correct
+style.textContent = `@@media screen { ... }`;
+
+// ❌ Incorrect - causes Razor compilation error
+style.textContent = `@media screen { ... }`;
+```
+
+## Mobile-First CSS Strategy
+- Start with mobile styles first
+- Use progressive enhancement for larger screens
+- Ensure touch targets are at least 44px
+- Test on actual iOS devices, not just simulators
+
+## Common iOS Issues
+1. **Zooming**: Fixed with proper viewport settings
+2. **Lag**: Caused by expensive CSS effects
+3. **Scrolling**: Fixed with `-webkit-overflow-scrolling: touch`
+4. **Touch responsiveness**: Improved with hardware acceleration
+
+## Testing Checklist
+- [ ] Test on actual iOS devices
+- [ ] Verify no unwanted zooming occurs
+- [ ] Check smooth scrolling performance
+- [ ] Ensure touch interactions are responsive
+- [ ] Validate CSS custom properties work correctly

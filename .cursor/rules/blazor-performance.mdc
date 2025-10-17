@@ -1,0 +1,149 @@
+---
+globs: *.razor,*.razor.css
+description: Blazor Component Performance Guidelines
+---
+
+# Blazor Component Performance Guidelines
+
+## Component Lifecycle Optimization
+
+### StateHasChanged() Usage
+- Minimize `StateHasChanged()` calls
+- Use `OnParametersSetAsync()` instead of `OnParametersSet()` for async operations
+- Avoid calling `StateHasChanged()` in tight loops
+
+### JavaScript Interop Best Practices
+```csharp
+// ✅ Good - Use OnAfterRenderAsync for JS interop
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        await JSRuntime.InvokeVoidAsync("initializeComponent");
+    }
+}
+
+// ❌ Avoid - JS interop in OnInitialized
+protected override void OnInitialized()
+{
+    JSRuntime.InvokeVoidAsync("initializeComponent"); // Don't do this
+}
+```
+
+## CSS Custom Properties in Blazor
+
+### Dynamic CSS Variables
+When setting CSS custom properties dynamically:
+```csharp
+private string GetComponentStyle()
+{
+    var style = new System.Text.StringBuilder();
+    style.Append($"--primary-color: {Color};");
+    style.Append($"--hover-color: {GetDarkerColor(Color)};");
+    return style.ToString();
+}
+```
+
+### iOS Compatibility
+For iOS Safari compatibility with CSS custom properties:
+```csharp
+protected override async Task OnParametersSetAsync()
+{
+    await base.OnParametersSetAsync();
+    StateHasChanged();
+    
+    // Apply iOS-specific fixes
+    try
+    {
+        await JSRuntime.InvokeVoidAsync("fixIOSColors");
+    }
+    catch
+    {
+        // Ignore JS errors
+    }
+}
+```
+
+## Event Handling Performance
+
+### Event Callback Optimization
+```csharp
+// ✅ Good - Use async callbacks properly
+[Parameter] public EventCallback<HabitModel> OnEditHabit { get; set; }
+
+private async Task HandleEdit()
+{
+    await OnEditHabit.InvokeAsync(Habit);
+}
+
+// ❌ Avoid - Blocking operations in event handlers
+private void HandleEdit()
+{
+    OnEditHabit.InvokeAsync(Habit).Wait(); // Don't block
+}
+```
+
+### Stop Propagation
+Use `@onclick:stopPropagation="true"` to prevent event bubbling:
+```html
+<div class="parent" @onclick="HandleParentClick">
+    <button @onclick="HandleButtonClick" @onclick:stopPropagation="true">
+        Click me
+    </button>
+</div>
+```
+
+## Component Architecture
+
+### Parameter Design
+- Use specific types instead of `object`
+- Minimize parameter count
+- Use `EventCallback<T>` for events
+- Implement proper parameter validation
+
+### Rendering Optimization
+```csharp
+// ✅ Good - Conditional rendering
+@if (IsVisible)
+{
+    <ExpensiveComponent Data="@Data" />
+}
+
+// ❌ Avoid - Always rendering expensive components
+<ExpensiveComponent Data="@Data" IsVisible="@IsVisible" />
+```
+
+## Memory Management
+
+### Disposal Pattern
+```csharp
+@implements IAsyncDisposable
+
+public async ValueTask DisposeAsync()
+{
+    // Clean up resources
+    if (jsObjectRef != null)
+    {
+        await jsObjectRef.DisposeAsync();
+    }
+}
+```
+
+### Large Data Sets
+- Use virtualization for large lists
+- Implement pagination
+- Consider lazy loading for heavy components
+
+## Performance Monitoring
+
+### Key Metrics to Track
+- Component render time
+- JavaScript interop latency
+- Memory usage
+- Event handler performance
+
+### Debugging Tools
+- Use browser DevTools Performance tab
+- Monitor Blazor component lifecycle
+- Check for memory leaks
+- Validate CSS performance impact

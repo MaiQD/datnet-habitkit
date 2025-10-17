@@ -116,6 +116,11 @@
     color: var(--text-on-primary);
 }
 
+/* iOS Safari compatibility - ensure colors are applied */
+.calendar-cell {
+    background-color: transparent;
+}
+
 .calendar-cell.selected {
     background-color: var(--habit-primary-hover, var(--warning-color));
     color: var(--text-on-primary);

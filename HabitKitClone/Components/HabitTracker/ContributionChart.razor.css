@@ -112,7 +112,7 @@
     box-sizing: border-box;
 }
 
-/* Chart cell colors - inline styles take precedence */
+/* Chart cell colors - optimized for iOS Safari */
 .chart-cell {
     width: 8px;
     height: 8px;
@@ -124,7 +124,8 @@
     flex-shrink: 0;
     min-width: 8px;
     box-sizing: border-box;
-    /* Remove any background-color to let inline styles work */
+    /* Ensure background-color is not overridden by CSS */
+    background-color: transparent;
 }
 
 .chart-cell-empty {
@@ -142,6 +143,13 @@
     border-color: var(--text-secondary);
     transform: scale(1.2);
     z-index: 10;
+}
+
+/* iOS-specific hover optimizations */
+@supports (-webkit-touch-callout: none) {
+    .chart-cell:hover {
+        transform: none;
+    }
 }
 
 .chart-cell:focus {
