@@ -17,6 +17,7 @@ public class DataSeeder
 
     public async Task SeedAsync()
     {
+        // Ensure database is created and migrations are applied
         await _context.Database.EnsureCreatedAsync();
 
         // Create demo user if it doesn't exist
@@ -31,6 +32,48 @@ public class DataSeeder
             };
             await _userManager.CreateAsync(demoUser, "Demo123!");
         }
+
+        // Create demo categories if they don't exist
+        if (!await _context.Categories.AnyAsync())
+        {
+            var categories = new List<Category>
+            {
+                new Category
+                {
+                    Name = "Health & Fitness",
+                    Color = "#10B981",
+                    Icon = "💪",
+                    UserId = demoUser.Id
+                },
+                new Category
+                {
+                    Name = "Learning",
+                    Color = "#3B82F6",
+                    Icon = "📚",
+                    UserId = demoUser.Id
+                },
+                new Category
+                {
+                    Name = "Productivity",
+                    Color = "#F59E0B",
+                    Icon = "⚡",
+                    UserId = demoUser.Id
+                },
+                new Category
+                {
+                    Name = "Mindfulness",
+                    Color = "#8B5CF6",
+                    Icon = "🧘",
+                    UserId = demoUser.Id
+                }
+            };
+
+            _context.Categories.AddRange(categories);
+            await _context.SaveChangesAsync();
+        }
+
+        // Get the first category for demo habits
+        var defaultCategory = await _context.Categories.FirstAsync();
 
         // Create demo habits if they don't exist
         if (!await _context.Habits.AnyAsync())
@@ -48,6 +91,7 @@ public class DataSeeder
                     ReminderTime = new TimeOnly(9, 0),
                     IsActive = true,
                     UserId = demoUser.Id,
+                    CategoryId = defaultCategory.Id,
                     CreatedAt = DateTime.UtcNow.AddDays(-30)
                 },
                 new Habit
@@ -61,6 +105,7 @@ public class DataSeeder
                     ReminderTime = new TimeOnly(18, 0),
                     IsActive = true,
                     UserId = demoUser.Id,
+                    CategoryId = defaultCategory.Id,
                     CreatedAt = DateTime.UtcNow.AddDays(-25)
                 },
                 new Habit
@@ -87,6 +132,7 @@ public class DataSeeder
                     ReminderTime = new TimeOnly(7, 0),
                     IsActive = true,
                     UserId = demoUser.Id,
+                    CategoryId = defaultCategory.Id,
                     CreatedAt = DateTime.UtcNow.AddDays(-15)
                 },
                 new Habit
@@ -100,6 +146,7 @@ public class DataSeeder
                     ReminderTime = new TimeOnly(21, 0),
                     IsActive = true,
                     UserId = demoUser.Id,
+                    CategoryId = defaultCategory.Id,
                     CreatedAt = DateTime.UtcNow.AddDays(-10)
                 }
             };

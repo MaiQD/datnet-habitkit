@@ -2,16 +2,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy project file and restore dependencies
-COPY HabitKitClone/HabitKitClone.csproj HabitKitClone/
-RUN dotnet restore HabitKitClone/HabitKitClone.csproj
+# Copy everything at once to avoid layer caching issues
+COPY . .
 
-# Copy source code and build
-COPY HabitKitClone/ HabitKitClone/
-RUN dotnet build HabitKitClone/HabitKitClone.csproj -c Release --no-restore
-
-# Publish the application
-RUN dotnet publish HabitKitClone/HabitKitClone.csproj -c Release --no-build -o /app/publish
+# Restore, build, and publish in one step
+RUN dotnet publish HabitKitClone/HabitKitClone.csproj -c Release -o /app/publish --self-contained false
 
 # Use the official .NET 9 runtime image for running
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
@@ -23,8 +18,8 @@ RUN mkdir -p /data
 # Copy published application
 COPY --from=build /app/publish .
 
-# Copy database file to data directory
-COPY HabitKitClone/Data/app.db /data/app.db
+# Create database file only if it doesn't exist (preserves existing data)
+RUN if [ ! -f /data/app.db ]; then touch /data/app.db; fi
 
 # Set environment variables
 ENV ASPNETCORE_ENVIRONMENT=Production
