@@ -1,0 +1,45 @@
+---
+globs: *.razor,*.razor.css
+description: Blazor Component Structure Guidelines
+---
+
+# Blazor Component Structure Guidelines
+
+## Component Organization
+- All pages should inherit from [BasePage.razor](mdc:HabitKitClone/Components/BasePage.razor) for automatic theme initialization
+- Use `@inherits BasePage` directive in page components
+- Keep component-specific CSS in `.razor.css` files
+
+## CSS File Structure
+- Component CSS files should only contain component-specific styles
+- Use CSS variables from [theme.css](mdc:HabitKitClone/wwwroot/theme.css) for all colors
+- Follow mobile-first responsive design approach
+- Use semantic class names that describe purpose, not appearance
+
+## Component CSS Best Practices
+```css
+/* ✅ Good - Uses theme variables */
+.my-component {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+/* ❌ Bad - Hardcoded values */
+.my-component {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+}
+```
+
+## File Naming Convention
+- Component files: `ComponentName.razor`
+- Component CSS: `ComponentName.razor.css`
+- Models: `ComponentName/Models/ModelName.cs`
+
+## Responsive Design
+- Always start with mobile styles (no media queries)
+- Use `@media (min-width: 768px)` for tablet
+- Use `@media (min-width: 1024px)` for desktop
+- Test on multiple screen sizes

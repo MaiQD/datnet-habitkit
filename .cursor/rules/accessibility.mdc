@@ -1,0 +1,54 @@
+---
+globs: *.razor,*.razor.css
+description: Accessibility Guidelines
+---
+
+# Accessibility Guidelines
+
+## ARIA Labels and Roles
+- Use `aria-label` for buttons without visible text
+- Use `role` attributes for custom interactive elements
+- Use `aria-selected` for tab-like interfaces
+- Use `aria-labelledby` to associate labels with elements
+
+## Keyboard Navigation
+- Ensure all interactive elements are keyboard accessible
+- Use `tabindex="0"` for custom interactive elements
+- Handle Enter and Space key events for custom buttons
+- Provide visible focus indicators
+
+## Color and Contrast
+- Use CSS variables from [theme.css](mdc:HabitKitClone/wwwroot/theme.css) for consistent contrast
+- Test both light and dark themes for accessibility
+- Ensure sufficient color contrast ratios (WCAG AA minimum)
+- Don't rely solely on color to convey information
+
+## Screen Reader Support
+- Use semantic HTML elements (`<button>`, `<nav>`, `<main>`, `<header>`)
+- Provide descriptive text for icons and images
+- Use `aria-hidden="true"` for decorative elements
+- Structure content logically with proper headings
+
+## Example Implementation
+```html
+<!-- ✅ Good - Accessible button -->
+<button class="icon-button" 
+        aria-label="Settings" 
+        @onclick="NavigateToSettings">
+    <i class="fas fa-cog" aria-hidden="true"></i>
+</button>
+
+<!-- ✅ Good - Accessible tab interface -->
+<button class="category-filter @(SelectedCategory == "all" ? "active" : "")"
+        role="tab"
+        aria-selected="@(SelectedCategory == "all" ? "true" : "false")"
+        @onclick="@(() => SelectCategory("all"))">
+    All
+</button>
+```
+
+## Testing
+- Test with keyboard-only navigation
+- Use screen reader software for testing
+- Verify color contrast with accessibility tools
+- Test with high contrast mode enabled

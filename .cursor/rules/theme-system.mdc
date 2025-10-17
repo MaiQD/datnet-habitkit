@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+description: CSS Theme System Guidelines
+---
+
+# CSS Theme System Guidelines
+
+## Theme Architecture
+- All theme variables are centralized in [theme.css](mdc:HabitKitClone/wwwroot/theme.css)
+- Dark theme is the default (`:root` selector)
+- Light theme uses `[data-theme="light"]` selector
+- Never use hardcoded colors in component CSS files
+
+## CSS Variable Usage
+Always use CSS variables instead of hardcoded values:
+```css
+/* ✅ Correct */
+background-color: var(--bg-primary);
+color: var(--text-primary);
+border: 1px solid var(--border-color);
+
+/* ❌ Incorrect */
+background-color: #161b22;
+color: #c9d1d9;
+border: 1px solid #30363d;
+```
+
+## Theme Variables Reference
+- **Backgrounds**: `--bg-primary`, `--bg-secondary`, `--bg-tertiary`, `--card-bg`, `--hover-bg`
+- **Text**: `--text-primary`, `--text-secondary`, `--text-muted`, `--text-on-primary`
+- **Borders**: `--border-color`
+- **Colors**: `--primary-color`, `--success-color`, `--error-color`, `--warning-color`
+- **Shadows**: `--shadow-color`, `--shadow-light`
+
+## Theme Switching
+- Theme is applied via `data-theme` attribute on `<html>` element
+- Theme initialization happens in [App.razor](mdc:HabitKitClone/Components/App.razor) head script
+- All pages inherit from [BasePage.razor](mdc:HabitKitClone/Components/BasePage.razor) for automatic theme initialization
+
+## Best Practices
+1. Always test both light and dark themes
+2. Use `color-scheme` CSS property for native browser elements
+3. Ensure sufficient contrast ratios for accessibility
+4. Test theme switching without page refresh

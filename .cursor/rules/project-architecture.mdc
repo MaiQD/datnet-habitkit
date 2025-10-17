@@ -1,0 +1,36 @@
+---
+alwaysApply: true
+description: Project Architecture and File Organization
+---
+
+# Project Architecture Guidelines
+
+## Project Structure
+- **Components**: [HabitKitClone/Components/](mdc:HabitKitClone/Components/) - All Blazor components
+- **Pages**: [HabitKitClone/Components/Pages/](mdc:HabitKitClone/Components/Pages/) - Route-based pages
+- **Services**: [HabitKitClone/Services/](mdc:HabitKitClone/Services/) - Business logic and data access
+- **Models**: [HabitKitClone/Models/](mdc:HabitKitClone/Models/) - Entity models
+- **DTOs**: [HabitKitClone/DTOs/](mdc:HabitKitClone/DTOs/) - Data transfer objects
+- **Data**: [HabitKitClone/Data/](mdc:HabitKitClone/Data/) - Database context and migrations
+- **wwwroot**: [HabitKitClone/wwwroot/](mdc:HabitKitClone/wwwroot/) - Static assets and CSS
+
+## Key Files
+- **Main App**: [App.razor](mdc:HabitKitClone/Components/App.razor) - Application shell with theme initialization
+- **Base Page**: [BasePage.razor](mdc:HabitKitClone/Components/BasePage.razor) - Base component for all pages
+- **Theme System**: [theme.css](mdc:HabitKitClone/wwwroot/theme.css) - Centralized theme variables
+- **Main Styles**: [app.css](mdc:HabitKitClone/wwwroot/app.css) - Application-wide styles
+- **Database**: [ApplicationDbContext.cs](mdc:HabitKitClone/Data/ApplicationDbContext.cs) - EF Core context
+
+## Development Principles
+1. **Separation of Concerns**: Keep UI, business logic, and data access separate
+2. **DRY Principle**: Don't repeat yourself - use CSS variables and shared components
+3. **SOLID Principles**: Follow single responsibility and dependency inversion
+4. **Mobile-First**: Design for mobile devices first, then enhance for larger screens
+5. **Accessibility**: Ensure proper ARIA labels and keyboard navigation
+
+## Code Organization
+- Use dependency injection for services
+- Keep components focused on single responsibilities
+- Use AutoMapper for DTO conversions
+- Follow async/await patterns for database operations
+- Implement proper error handling and logging

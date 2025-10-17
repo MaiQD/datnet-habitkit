@@ -1,0 +1,43 @@
+---
+globs: *.js,*.ts
+description: JavaScript/TypeScript Guidelines
+---
+
+# JavaScript/TypeScript Guidelines
+
+## Theme Management
+- Theme switching is handled in [App.razor](mdc:HabitKitClone/Components/App.razor)
+- Use `document.documentElement.setAttribute('data-theme', theme)` for theme application
+- Cookie management functions: `setCookie()`, `getCookie()`
+- Theme initialization: `initializeTheme()`
+
+## Best Practices
+1. **Immediate Execution**: Use IIFE for scripts that need to run immediately
+2. **Error Handling**: Wrap JavaScript calls in try-catch blocks
+3. **Async/Await**: Use modern async patterns for Blazor interop
+4. **Performance**: Minimize DOM queries and use efficient selectors
+
+## Blazor Interop Patterns
+```javascript
+// ✅ Good - Proper error handling
+window.myFunction = function(param) {
+    try {
+        // Implementation
+        return result;
+    } catch (error) {
+        console.error('Error in myFunction:', error);
+        return null;
+    }
+};
+```
+
+## Cookie Management
+- Use `setCookie(name, value, days)` for setting cookies
+- Use `getCookie(name)` for retrieving cookies
+- Always provide fallback values for missing cookies
+- Set appropriate expiration times (365 days for theme preference)
+
+## Theme Functions
+- `applyTheme(theme)` - Applies theme to document
+- `initializeTheme()` - Initializes theme from cookies
+- Always return the current theme value for consistency

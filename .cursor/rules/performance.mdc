@@ -1,0 +1,59 @@
+---
+globs: *.razor,*.razor.css,*.js
+description: Performance Optimization Guidelines
+---
+
+# Performance Optimization Guidelines
+
+## CSS Performance
+- Use CSS variables for theme switching (no style recalculation)
+- Minimize CSS specificity conflicts
+- Use efficient selectors (avoid deep nesting)
+- Leverage CSS `color-scheme` for native browser elements
+
+## Theme Loading
+- Theme is set immediately in [App.razor](mdc:HabitKitClone/Components/App.razor) head script
+- Prevents flash of unstyled content (FOUC)
+- Uses inline script for immediate execution
+- CSS variables provide instant theme switching
+
+## Blazor Performance
+- Use `@inherits BasePage` for automatic theme initialization
+- Minimize `StateHasChanged()` calls
+- Use `OnAfterRenderAsync` for JavaScript interop
+- Implement proper async/await patterns
+
+## JavaScript Optimization
+```javascript
+// ✅ Good - Efficient theme switching
+window.applyTheme = function(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+};
+
+// ✅ Good - Immediate execution with IIFE
+(function() {
+    var theme = document.cookie.split(';').find(function(cookie) {
+        return cookie.trim().startsWith('theme=');
+    });
+    var themeValue = theme ? theme.split('=')[1] : 'dark';
+    document.documentElement.setAttribute('data-theme', themeValue);
+})();
+```
+
+## Asset Loading
+- Load critical CSS first ([theme.css](mdc:HabitKitClone/wwwroot/theme.css))
+- Use CDN for external libraries (Font Awesome)
+- Minimize HTTP requests
+- Optimize images and use appropriate formats
+
+## Database Performance
+- Use async/await for all database operations
+- Implement proper error handling
+- Use Entity Framework efficiently
+- Consider caching for frequently accessed data
+
+## Mobile Performance
+- Follow mobile-first CSS approach
+- Use touch-friendly sizing (44px minimum)
+- Optimize for slow networks
+- Test on actual mobile devices
