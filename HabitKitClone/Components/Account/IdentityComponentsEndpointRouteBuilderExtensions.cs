@@ -46,7 +46,8 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             [FromForm] string returnUrl) =>
         {
             await signInManager.SignOutAsync();
-            return TypedResults.LocalRedirect($"~/{returnUrl}");
+            var redirectUrl = returnUrl?.StartsWith('/') == true ? returnUrl : $"/{returnUrl}";
+            return TypedResults.LocalRedirect(redirectUrl);
         });
 
         var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();

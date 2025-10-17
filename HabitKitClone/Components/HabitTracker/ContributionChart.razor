@@ -11,6 +11,8 @@
             <div class="chart-grid">
                 @{
                     var weeks = Data.GroupBy(d => GetWeekOfYear(d.Date)).OrderBy(g => g.Key).ToList();
+                    var maxWeekNumber = GetMaxWeekNumberToShow();
+                    var weekNumbers = weeks.Where(w => w.Key <= maxWeekNumber).Select(w => w.Key).ToList();
                 }
                 
                 @for (int day = 0; day < 7; day++)
@@ -19,28 +21,20 @@
                     <div class="chart-row">
                         <div class="day-label">@Localizer[dayName]</div>
                         <div class="day-cells">
-                            @for (int week = 0; week < 52; week++)
+                            @foreach (var weekNumber in weekNumbers)
                             {
-                                var weekData = weeks.FirstOrDefault(w => w.Key == week)?.ToList() ?? new List<ContributionDay>();
+                                var weekData = weeks.FirstOrDefault(w => w.Key == weekNumber)?.ToList() ?? new List<ContributionDay>();
                                 var dayData = weekData.FirstOrDefault(d => (int)d.Date.DayOfWeek == day);
                                 var count = dayData?.Count ?? 0;
-                                var isFuture = IsFutureDate(dayData?.Date);
                                 
-                                @if (!isFuture)
-                                {
-                                    <div class="chart-cell level-@GetLevelForCount(count)"
-                                         style="@GetCellStyle(count)"
-                                         title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
-                                         role="button"
-                                         tabindex="0"
-                                         @onclick="() => OnCellClick.InvokeAsync(dayData)"
-                                         @onkeypress="@(async (e) => { if (e.Key == "Enter" || e.Key == " ") { await OnCellClick.InvokeAsync(dayData); } })">
-                                    </div>
-                                }
-                                else
-                                {
-                                    break;
-                                }
+                                <div class="chart-cell level-@GetLevelForCount(count)"
+                                     style="@GetCellStyle(count)"
+                                     title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
+                                     role="button"
+                                     tabindex="0"
+                                     @onclick="() => OnCellClick.InvokeAsync(dayData)"
+                                     @onkeypress="@(async (e) => { if (e.Key == "Enter" || e.Key == " ") { await OnCellClick.InvokeAsync(dayData); } })">
+                                </div>
                             }
                         </div>
                     </div>
@@ -125,6 +119,12 @@
     {
         if (!date.HasValue) return false;
         return date.Value.Date > DateTime.Today;
+    }
+
+    private int GetMaxWeekNumberToShow()
+    {
+        var today = DateTime.Today;
+        return GetWeekOfYear(today);
     }
 
     private string GetCellStyle(int count)
