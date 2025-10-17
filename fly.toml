@@ -1,5 +1,5 @@
 # Fly.io configuration file
-app = "habitkit-clone"
+app = "datnet-habitkit"
 primary_region = "sjc"  # San Jose, CA - change to your preferred region
 
 [build]
