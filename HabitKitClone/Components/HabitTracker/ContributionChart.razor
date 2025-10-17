@@ -4,7 +4,7 @@
 @inject IJSRuntime JSRuntime
 @inject IStringLocalizer<SharedResource> Localizer
 
-<div class="contribution-chart" role="img" aria-label="Habit contribution chart for the past year">
+<div class="contribution-chart" role="img" aria-label="Habit contribution chart for the past year" style="@ChartStyle">
     <div class="chart-wrapper">
         <div class="chart-container" @ref="chartContainer">
             <div class="chart-grid">
@@ -23,10 +23,8 @@
                                 var weekData = weeks.FirstOrDefault(w => w.Key == week)?.ToList() ?? new List<ContributionDay>();
                                 var dayData = weekData.FirstOrDefault(d => (int)d.Date.DayOfWeek == day);
                                 var count = dayData?.Count ?? 0;
-                                var opacity = GetOpacityForCount(count);
                                 
-                                <div class="chart-cell"
-                                     style="background-color: @(string.IsNullOrEmpty(Color) ? "#238636" : Color) !important; opacity: @opacity !important;"
+                                <div class="chart-cell level-@GetLevelForCount(count)"
                                      title="@(dayData != null ? $"{dayData.Date:MMM dd, yyyy} - {count} completion{(count != 1 ? "s" : "")}" : "")"
                                      role="button"
                                      tabindex="0"
@@ -49,6 +47,19 @@
     [Parameter] public EventCallback<ContributionDay?> OnCellClick { get; set; }
 
     private ElementReference chartContainer;
+    private string ChartStyle { get; set; } = "";
+    
+    protected override void OnParametersSet()
+    {
+        var style = new System.Text.StringBuilder();
+        style.Append($"--habit-color-level-1: {HexToRgba(Color, 0.4)};");
+        style.Append($"--habit-color-level-2: {HexToRgba(Color, 0.6)};");
+        style.Append($"--habit-color-level-3: {HexToRgba(Color, 0.8)};");
+        style.Append($"--habit-color-level-4: {HexToRgba(Color, 1.0)};");
+        ChartStyle = style.ToString();
+        base.OnParametersSet();
+    }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -67,6 +78,33 @@
         catch
         {
             // Ignore JS errors - chart will still work without auto-scroll
+        }
+    }
+    
+    private string HexToRgba(string hex, double opacity)
+    {
+        if (string.IsNullOrEmpty(hex) || !hex.StartsWith("#"))
+        {
+            hex = "#238636"; // Default color
+        }
+    
+        hex = hex.Length == 7 ? hex.Substring(1) : hex;
+    
+        if (hex.Length != 6)
+        {
+            return $"rgba(35, 134, 54, {opacity.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
+        }
+    
+        try 
+        {
+            var r = Convert.ToByte(hex.Substring(0, 2), 16);
+            var g = Convert.ToByte(hex.Substring(2, 2), 16);
+            var b = Convert.ToByte(hex.Substring(4, 2), 16);
+            return $"rgba({r}, {g}, {b}, {opacity.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
+        }
+        catch (Exception)
+        {
+            return $"rgba(35, 134, 54, {opacity.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
         }
     }
 
@@ -91,21 +129,15 @@
         return calendar.GetWeekOfYear(date, System.Globalization.CalendarWeekRule.FirstDay, DayOfWeek.Sunday);
     }
 
-    private double GetOpacityForCount(int count)
+    private int GetLevelForCount(int count)
     {
         return count switch
         {
-            0 => 0.0,  // Completely transparent for empty cells
-            1 => 0.4,  // Light opacity for single completion
-            2 => 0.5,  // Medium opacity for 2 completions
-            3 => 0.6,  // Medium-high opacity for 3 completions
-            4 => 0.7,  // High opacity for 4 completions
-            5 => 0.8,  // Very high opacity for 5 completions
-            6 => 0.8,  // Very high opacity for 6 completions
-            7 => 0.9,  // Almost full opacity for 7 completions
-            8 => 0.9,  // Almost full opacity for 8 completions
-            9 => 0.9,  // Almost full opacity for 9 completions
-            _ => 1.0   // Full opacity for 10+ completions
+            0 => 0,
+            1 => 1,
+            <= 3 => 2,
+            <= 5 => 3,
+            _ => 4,
         };
     }
 }

@@ -1,0 +1,97 @@
+/* 
+  HabitKit Clone Theme
+  This file contains all CSS custom properties (variables) for theming the application.
+  It includes support for both a default dark theme and a light theme.
+*/
+
+/* Prevent theme flash by setting default theme immediately */
+html {
+  color-scheme: dark;
+}
+
+:root {
+    /* ==========================================================================
+       Dark Theme (Default)
+       ========================================================================== */
+
+    /* Background Colors */
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --card-bg: #161b22;
+    --hover-bg: #21262d;
+
+    /* Text Colors */
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    --text-muted: #8b949e;
+    --text-on-primary: #ffffff;
+    --text-on-success: #ffffff;
+
+    /* Border Colors */
+    --border-color: #30363d;
+
+    /* Primary & Accent Colors */
+    --primary-color: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --success-color: #238636;
+    --success-hover: #2ea043;
+    --warning-color: #f59e0b;
+    --error-color: #f85149;
+    
+    /* Shadow Colors */
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    
+    /* Contribution Chart Colors (placeholders, will be overridden by habit color) */
+    --habit-color-level-0: #21262d;
+    --habit-color-level-1: rgba(35, 134, 54, 0.4);
+    --habit-color-level-2: rgba(35, 134, 54, 0.6);
+    --habit-color-level-3: rgba(35, 134, 54, 0.8);
+    --habit-color-level-4: #238636;
+}
+
+[data-theme="light"] {
+    /* ==========================================================================
+       Light Theme
+       Based on the provided design screenshot.
+       ========================================================================== */
+    
+    color-scheme: light;
+
+    /* Background Colors */
+    --bg-primary: #f7f8fa;      /* Light gray page background */
+    --bg-secondary: #ffffff;    /* White header/nav background */
+    --bg-tertiary: #f1f3f4;    /* Slightly off-white for hover/tertiary elements */
+    --card-bg: #ffffff;         /* White card background */
+    --hover-bg: #f6f8fa;
+
+    /* Text Colors */
+    --text-primary: #1c1c1e;     /* Almost black for primary text */
+    --text-secondary: #8a8a8e;  /* Gray for secondary text (descriptions) */
+    --text-muted: #656d76;
+    --text-on-primary: #ffffff;
+    --text-on-success: #ffffff;
+
+    /* Border Colors */
+    --border-color: #eef0f2;     /* Very light gray for borders */
+
+    /* Primary & Accent Colors */
+    --primary-color: #8b5cf6;     /* Purple for titles and active elements */
+    --primary-hover: #7c3aed;
+    --success-color: #34c759;     /* Green for success actions */
+    --success-hover: #2ca348;
+    --warning-color: #ff9500;
+    --error-color: #ff3b30;
+
+    /* Shadow Colors */
+    --shadow-color: rgba(0, 0, 0, 0.05); /* Softer shadow for light theme */
+    --shadow-light: rgba(0, 0, 0, 0.02);
+    
+    /* Contribution Chart Colors (placeholders) */
+    --habit-color-level-0: #ebedf0;
+    --habit-color-level-1: rgba(52, 199, 89, 0.4);
+    --habit-color-level-2: rgba(52, 199, 89, 0.6);
+    --habit-color-level-3: rgba(52, 199, 89, 0.8);
+    --habit-color-level-4: #34c759;
+}

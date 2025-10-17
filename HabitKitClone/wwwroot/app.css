@@ -1,48 +1,5 @@
 /* Mobile-First Responsive Design for HabitKit Clone */
 
-/* CSS Custom Properties for Theme Support */
-:root {
-    /* Dark Theme (Default) */
-    --bg-primary: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-tertiary: #21262d;
-    --card-bg: #161b22;
-    --border-color: #30363d;
-    --text-primary: #c9d1d9;
-    --text-secondary: #8b949e;
-    --text-muted: #8b949e;
-    --primary-color: #8b5cf6;
-    --primary-hover: #7c3aed;
-    --success-color: #238636;
-    --success-hover: #2ea043;
-    --warning-color: #f59e0b;
-    --error-color: #f85149;
-    --hover-bg: #21262d;
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    --shadow-light: rgba(0, 0, 0, 0.1);
-}
-
-/* Light Theme */
-[data-theme="light"] {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f6f8fa;
-    --bg-tertiary: #f1f3f4;
-    --card-bg: #ffffff;
-    --border-color: #d0d7de;
-    --text-primary: #24292f;
-    --text-secondary: #656d76;
-    --text-muted: #656d76;
-    --primary-color: #0969da;
-    --primary-hover: #0860ca;
-    --success-color: #1a7f37;
-    --success-hover: #2ea043;
-    --warning-color: #bf8700;
-    --error-color: #d1242f;
-    --hover-bg: #f6f8fa;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --shadow-light: rgba(0, 0, 0, 0.05);
-}
-
 /* Base Styles - Mobile First */
 html, body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
@@ -568,31 +525,7 @@ a:hover, .btn-link:hover {
     transform: scale(1.1);
 }
 
-.level-0 {
-    background-color: #ebedf0;
-    border: 1px solid #ebedf0;
-}
-
-.level-1 {
-    background: #9be9a8;
-    border: 1px solid #9be9a8;
-}
-
-.level-2 {
-    background: #40c463;
-    border: 1px solid #40c463;
-}
-
-.level-3 {
-    background: #30a14e;
-    border: 1px solid #30a14e;
-}
-
-.level-4 {
-    background: #216e39;
-    border: 1px solid #216e39;
-}
-
+/* Graph Legend - Mobile First */
 .graph-legend {
     display: flex;
     align-items: center;
@@ -1264,12 +1197,17 @@ a:hover, .btn-link:hover {
     justify-content: center;
     gap: 0.75rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a1a 100%);
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     border-top: 1px solid var(--border-color);
     position: sticky;
     bottom: 0;
     z-index: 100;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -4px 12px var(--shadow-color);
+}
+
+[data-theme="light"] .global-view-controls {
+    background: var(--bg-secondary);
+    box-shadow: 0 -2px 6px var(--shadow-color);
 }
 
 .view-button {

@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using HabitKitClone.Data
+@inherits BasePage
 @inject IStringLocalizer<SharedResource> Localizer
 @inject NavigationManager NavigationManager
 @inject IUserSettingsService UserSettingsService
@@ -63,7 +64,7 @@
                         <span class="settings-label">Theme</span>
                     </div>
                     <div class="settings-toggle">
-                        <div class="toggle @(_currentTheme == "dark" ? "active" : "")" @onclick="ToggleTheme">
+                        <div class="toggle @(_currentTheme == "dark" ? "active" : "")" @onclick="ToggleTheme" @onclick:stopPropagation="true">
                             <div class="toggle-handle"></div>
                         </div>
                     </div>
@@ -168,17 +169,21 @@
 @code {
     private string _currentTheme = "dark";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var userId = await UserContext.GetCurrentUserIdAsync();
-        if (!string.IsNullOrEmpty(userId))
+        if (firstRender)
         {
-            var settings = await UserSettingsService.GetUserSettingsAsync(userId);
-            if (settings != null)
+            // Get current theme for toggle display
+            var themeFromCookie = await JSRuntime.InvokeAsync<string>("getCookie", "theme");
+            if (!string.IsNullOrEmpty(themeFromCookie))
             {
-                _currentTheme = settings.Theme;
+                _currentTheme = themeFromCookie;
+                StateHasChanged();
             }
         }
+        
+        // Call base implementation for global theme initialization
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private void NavigateToHome()
@@ -189,16 +194,15 @@
     private async Task ToggleTheme()
     {
         _currentTheme = _currentTheme == "dark" ? "light" : "dark";
-        
+
+        await JSRuntime.InvokeVoidAsync("applyTheme", _currentTheme);
+        await JSRuntime.InvokeVoidAsync("setCookie", "theme", _currentTheme, 365);
+
         var userId = await UserContext.GetCurrentUserIdAsync();
         if (!string.IsNullOrEmpty(userId))
         {
             await UserSettingsService.UpdateThemeAsync(userId, _currentTheme);
-            await JSRuntime.InvokeVoidAsync("setCookie", "theme", _currentTheme, 365);
-            await JSRuntime.InvokeVoidAsync("applyTheme", _currentTheme);
         }
-        
-        StateHasChanged();
     }
 
     private void NavigateToGeneral()

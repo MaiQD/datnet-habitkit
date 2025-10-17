@@ -1,10 +1,10 @@
 /* Contribution Chart Styles - Mobile First */
 
 .contribution-chart {
-    background-color: #0d1117;
+    background-color: var(--bg-primary);
     border-radius: 8px;
     padding: 0.75rem;
-    border: 1px solid #21262d;
+    border: 1px solid var(--bg-tertiary);
     overflow: hidden; /* Prevent chart overflow */
 }
 
@@ -22,9 +22,9 @@
     top: 0;
     bottom: 0;
     width: 30px; /* Width of label column */
-    background-color: #0d1117;
+    background-color: var(--bg-primary);
     z-index: 5;
-    border-right: 1px solid #21262d;
+    border-right: 1px solid var(--bg-tertiary);
 }
 
 .chart-container {
@@ -33,7 +33,7 @@
     margin-bottom: 0.75rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    scrollbar-color: #30363d transparent;
+    scrollbar-color: var(--border-color) transparent;
     width: 100%;
 }
 
@@ -46,12 +46,12 @@
 }
 
 .chart-container::-webkit-scrollbar-thumb {
-    background-color: #30363d;
+    background-color: var(--border-color);
     border-radius: 2px;
 }
 
 .chart-container::-webkit-scrollbar-thumb:hover {
-    background-color: #8b949e;
+    background-color: var(--text-secondary);
 }
 
 .chart-grid {
@@ -77,7 +77,7 @@
     width: 20px;
     height: 10px;
     font-size: 0.625rem;
-    color: #8b949e;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -105,22 +105,29 @@
     border-radius: 2px;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid #333;
+    border: 1px solid transparent;
     position: relative;
     flex-shrink: 0;
     min-width: 20px;
     box-sizing: border-box;
-    background-color: #238636; /* Fallback color */
+    background-color: var(--habit-color-level-4); /* Fallback color */
 }
 
+.chart-cell.level-0 { background-color: var(--habit-color-level-0); }
+.chart-cell.level-1 { background-color: var(--habit-color-level-1); }
+.chart-cell.level-2 { background-color: var(--habit-color-level-2); }
+.chart-cell.level-3 { background-color: var(--habit-color-level-3); }
+.chart-cell.level-4 { background-color: var(--habit-color-level-4); }
+
+
 .chart-cell:hover {
-    border-color: #8b949e;
+    border-color: var(--text-secondary);
     transform: scale(1.2);
     z-index: 10;
 }
 
 .chart-cell:focus {
-    outline: 2px solid #8b5cf6;
+    outline: 2px solid var(--primary-color);
     outline-offset: 1px;
 }
 
@@ -131,7 +138,7 @@
     justify-content: flex-end;
     gap: 0.5rem;
     font-size: 0.625rem;
-    color: #8b949e;
+    color: var(--text-secondary);
 }
 
 .legend-text {
@@ -147,7 +154,7 @@
     width: 8px;
     height: 8px;
     border-radius: 2px;
-    border: 1px solid #30363d;
+    border: 1px solid var(--border-color);
 }
 
 /* Mobile specific fixes */

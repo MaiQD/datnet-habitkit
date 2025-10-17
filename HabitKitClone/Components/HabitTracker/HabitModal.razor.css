@@ -16,8 +16,8 @@
 }
 
 .modal-content {
-    background-color: #161b22;
-    border: 1px solid #30363d;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 100%;
     max-width: 500px;
@@ -43,20 +43,20 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem;
-    border-bottom: 1px solid #30363d;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #c9d1d9;
+    color: var(--text-primary);
     margin: 0;
 }
 
 .modal-close {
     background: none;
     border: none;
-    color: #8b949e;
+    color: var(--text-muted);
     font-size: 1.25rem;
     cursor: pointer;
     padding: 0.5rem;
@@ -70,12 +70,12 @@
 }
 
 .modal-close:hover {
-    background-color: #21262d;
-    color: #c9d1d9;
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
 }
 
 .modal-close:focus {
-    outline: 2px solid #8b5cf6;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
@@ -88,7 +88,7 @@
     gap: 0.75rem;
     justify-content: flex-end;
     padding: 1.25rem;
-    border-top: 1px solid #30363d;
+    border-top: 1px solid var(--border-color);
 }
 
 /* Form Styles */
@@ -104,17 +104,17 @@
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #c9d1d9;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
 .form-control {
     width: 100%;
     padding: 0.75rem;
-    background-color: #0d1117;
-    border: 1px solid #30363d;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: #c9d1d9;
+    color: var(--text-primary);
     font-size: 0.875rem;
     transition: all 0.2s ease;
     font-family: inherit;
@@ -122,12 +122,12 @@
 
 .form-control:focus {
     outline: none;
-    border-color: #8b5cf6;
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
 .form-control::placeholder {
-    color: #8b949e;
+    color: var(--text-muted);
 }
 
 textarea.form-control {
@@ -164,17 +164,17 @@ select.form-control {
 
 .color-option:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .color-option.selected {
-    border-color: #c9d1d9;
+    border-color: var(--text-primary);
     transform: scale(1.1);
-    box-shadow: 0 0 0 2px #8b5cf6;
+    box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 .color-option:focus {
-    outline: 2px solid #8b5cf6;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
@@ -196,34 +196,34 @@ select.form-control {
 }
 
 .btn-primary {
-    background-color: #238636;
-    border-color: #238636;
-    color: white;
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: var(--text-on-success);
 }
 
 .btn-primary:hover {
-    background-color: #2ea043;
-    border-color: #2ea043;
+    background-color: var(--success-hover);
+    border-color: var(--success-hover);
 }
 
 .btn-primary:focus {
-    outline: 2px solid #8b5cf6;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
 .btn-secondary {
-    background-color: #21262d;
-    border-color: #30363d;
-    color: #c9d1d9;
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-    background-color: #30363d;
-    border-color: #8b949e;
+    background-color: var(--hover-bg);
+    border-color: var(--text-secondary);
 }
 
 .btn-secondary:focus {
-    outline: 2px solid #8b5cf6;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
@@ -285,9 +285,9 @@ select.form-control {
 .new-category-form {
     margin-top: 1rem;
     padding: 1rem;
-    border: 1px solid #30363d;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background-color: #0d1117;
+    background-color: var(--bg-primary);
 }
 
 .form-actions {
@@ -300,15 +300,15 @@ select.form-control {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .modal-content {
-        border: 2px solid #c9d1d9;
+        border: 2px solid var(--text-primary);
     }
     
     .form-control {
-        border: 2px solid #8b949e;
+        border: 2px solid var(--text-secondary);
     }
     
     .color-option.selected {
-        border-color: #ffffff;
-        box-shadow: 0 0 0 3px #8b5cf6;
+        border-color: var(--text-on-primary);
+        box-shadow: 0 0 0 3px var(--primary-color);
     }
 }

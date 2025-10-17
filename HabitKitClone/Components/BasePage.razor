@@ -1,0 +1,13 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Initialize theme globally for all pages
+            await JSRuntime.InvokeVoidAsync("initializeTheme");
+        }
+    }
+}
