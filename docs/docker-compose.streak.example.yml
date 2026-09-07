@@ -1,0 +1,35 @@
+# Example docker-compose.yml for Streak itself, living in its own directory
+# (e.g. /opt/streak), deployed independently by its own CI/CD (ADR-0009).
+# Notice: NO ports are published to the host — the shared proxy (ADR-0010)
+# is the only thing exposed externally, and reaches this container by its
+# service name ("streak-api") over the shared "web" network.
+
+services:
+  streak-api:
+    image: ghcr.io/<owner>/<repo>:${IMAGE_TAG:-latest}
+    container_name: streak-api
+    restart: unless-stopped
+    env_file:
+      - .env # DB connection string, Google OAuth, VAPID keys, etc. (ADR-0008)
+    volumes:
+      - streak_data:/app/data          # SQLite DB file (ADR-0003)
+      - streak_dp_keys:/app/dp-keys    # ASP.NET Core Data Protection key ring (ADR-0008)
+    networks:
+      - web       # so the shared Caddy proxy can reach it
+      - internal  # app-private network, e.g. if a cache/queue is added later
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    mem_limit: 512m # keep this app from starving others on the same VPS
+
+networks:
+  web:
+    external: true # the shared network created once for the proxy (ADR-0010)
+  internal:
+    driver: bridge
+
+volumes:
+  streak_data:
+  streak_dp_keys:

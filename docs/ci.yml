@@ -1,0 +1,69 @@
+# SUPERSEDED by .github/workflows/ci.yml (paths are ./src/api and ./src/web).
+# CI — runs on every push and pull request. Never touches the VPS.
+# Deployment is handled separately by deploy.yml, triggered only on push to main.
+#
+# Assumes a repo layout of:
+#   /api  — ASP.NET Core project (adjust dotnet-version / paths as needed)
+#   /web  — Svelte + Vite project (ADR-0007)
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main] # main is covered by deploy.yml's build+test-then-deploy flow
+
+jobs:
+  api:
+    name: Build & test API
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: api/**/test-results.trx
+
+  web:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Type-check / lint (if configured)
+        run: npm run check --if-present

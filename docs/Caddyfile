@@ -1,0 +1,23 @@
+# Shared Caddyfile — the single entry point for every app hosted on this VPS.
+# Lives alongside docker-compose.proxy.yml, e.g. in /opt/proxy/Caddyfile.
+#
+# Adding a new app later = add one block below (any domain works, not just
+# subdomains of datmai.net) + point that domain's DNS A record at this VPS's
+# IP + make sure the app's own container joins the shared "web" network.
+# No changes needed to any other app's block.
+
+habit.datmai.net {
+    reverse_proxy streak-api:8080
+}
+
+# Example of a second, unrelated app — copy this shape when you add one:
+#
+# app2.example.com {
+#     reverse_proxy app2-api:3000
+# }
+
+# Optional but recommended once you have more than one app: a catch-all
+# so mistyped/unrecognized Host headers don't accidentally reach an app.
+:80, :443 {
+    respond "Not found" 404
+}

@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#171310">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Streak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#171310;
+    --surface:#211b15;
+    --surface-hi:#2a2319;
+    --line:#362d22;
+    --text:#f3ece0;
+    --muted:#9b8f7d;
+    --amber:#ff8a3d;
+    --amber-glow:#ffb768;
+    --amber-dim:#4a2f18;
+    --teal:#4fb8ae;
+    --teal-dim:#1f3b38;
+    --danger:#e5484d;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    padding-bottom:96px;
+    overscroll-behavior-y:contain;
+  }
+  .display{font-family:'Space Grotesk',sans-serif;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px;}
+  header.top{
+    padding:20px 0 4px;
+    display:flex;align-items:baseline;justify-content:space-between;
+  }
+  header.top h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:22px;margin:0;letter-spacing:-0.02em;
+  }
+  header.top span{color:var(--muted);font-size:13px;}
+
+  .stat-bar{
+    display:flex;gap:14px;color:var(--muted);font-size:12.5px;padding:2px 0 16px;
+    border-bottom:1px solid var(--line);margin-bottom:14px;
+  }
+  .stat-bar b{color:var(--text);font-family:'Space Grotesk',sans-serif;font-weight:600;}
+
+  .empty{
+    text-align:center;color:var(--muted);padding:64px 24px;font-size:14px;line-height:1.6;
+  }
+  .empty .icon{font-size:40px;display:block;margin-bottom:12px;opacity:0.8;}
+  .empty b{color:var(--text);display:block;font-family:'Space Grotesk',sans-serif;font-size:17px;margin-bottom:6px;}
+
+  .card-wrap{
+    position:relative;margin-bottom:12px;border-radius:14px;overflow:hidden;
+  }
+  .swipe-delete-bg{
+    position:absolute;inset:0;background:var(--danger);color:#fff;
+    display:flex;align-items:center;justify-content:flex-end;padding-right:22px;
+    font-size:13px;font-weight:600;font-family:'Space Grotesk',sans-serif;
+  }
+  .card{
+    position:relative;z-index:1;background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 16px 14px;
+    transition:transform 0.2s ease;
+    touch-action:pan-y;
+  }
+  .card-top{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px;
+  }
+  .name-row{display:flex;align-items:center;gap:8px;min-width:0;}
+  .type-dot{
+    width:8px;height:8px;border-radius:50%;flex:none;
+  }
+  .type-dot.check{background:var(--amber);}
+  .type-dot.quantity{background:var(--teal);}
+  .subj-name{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .fires{display:flex;gap:4px;flex:none;padding-top:2px;}
+  .fire-icon{font-size:17px;opacity:0.25;filter:grayscale(1);transition:opacity 0.2s, filter 0.2s;}
+  .fire-icon.on{opacity:1;filter:none;text-shadow:0 0 8px rgba(255,138,61,0.65);}
+
+  .meta-row{
+    display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin:2px 0 12px;color:var(--muted);font-size:12.5px;
+  }
+  .streak-num{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;color:var(--amber-glow);
+    letter-spacing:-0.02em;
+  }
+  .best-badge{color:var(--muted);}
+  .best-badge b{color:var(--text);font-weight:600;}
+
+  .grid-scroll{
+    overflow-x:auto;overflow-y:hidden;padding-bottom:4px;margin:0 -16px;padding-left:16px;padding-right:16px;
+    scrollbar-width:none;
+  }
+  .grid-scroll::-webkit-scrollbar{display:none;}
+  .grid-inner{display:flex;gap:4px;}
+  .weekday-col{display:flex;flex-direction:column;gap:3px;flex:none;padding-top:15px;}
+  .weekday-lbl{height:11px;font-size:9px;color:var(--muted);line-height:11px;width:20px;text-align:right;}
+  .months-row{display:flex;gap:3px;margin-bottom:3px;height:12px;}
+  .month-lbl{font-size:10px;color:var(--muted);flex:none;}
+  .weeks{display:flex;gap:3px;}
+  .week-col{display:flex;flex-direction:column;gap:3px;flex:none;}
+  .cell{
+    width:11px;height:11px;border-radius:3px;background:var(--surface-hi);
+    cursor:pointer;position:relative;flex:none;
+  }
+  .cell.future{cursor:default;opacity:0.4;}
+  .cell.fire-cell{
+    display:flex;align-items:center;justify-content:center;background:var(--surface-hi);
+  }
+  .cell.fire-cell::after{content:'🔥';font-size:8px;}
+  .cell.today-ring{box-shadow:0 0 0 1.5px var(--amber-glow);}
+  @keyframes cellPulse{
+    0%{transform:scale(1);}
+    40%{transform:scale(1.45);}
+    100%{transform:scale(1);}
+  }
+  .cell.pulse{animation:cellPulse 0.32s ease;z-index:2;}
+
+  .mini-row{display:flex;gap:5px;margin-bottom:8px;}
+  .mini-row .cell{width:15px;height:15px;border-radius:4px;}
+  .grid-toggle{
+    background:none;border:none;color:var(--muted);font-size:12px;padding:0 0 10px;
+    cursor:pointer;font-family:inherit;
+  }
+  .grid-toggle-full{display:block;margin-top:6px;}
+
+  .quick-row{display:flex;gap:8px;margin-top:12px;}
+  .btn{
+    font-family:inherit;font-size:13.5px;border-radius:9px;padding:9px 14px;border:1px solid var(--line);
+    background:var(--surface-hi);color:var(--text);cursor:pointer;flex:1;
+  }
+  .btn.primary.check{background:var(--amber);border-color:var(--amber);color:#221204;font-weight:600;}
+  .btn.primary.check.done{background:var(--amber-dim);border-color:var(--amber-dim);color:var(--amber-glow);}
+  .btn.primary.quantity{background:var(--teal);border-color:var(--teal);color:#0a201e;font-weight:600;}
+
+  .fab{
+    position:fixed;right:20px;bottom:24px;
+    width:56px;height:56px;border-radius:50%;
+    background:var(--amber);color:#221204;border:none;
+    font-size:26px;line-height:56px;text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+    cursor:pointer;
+  }
+
+  .toast-root{
+    position:fixed;top:calc(14px + env(safe-area-inset-top));left:50%;
+    transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;
+    pointer-events:none;
+  }
+  .toast{
+    background:var(--amber);color:#221204;font-weight:600;font-size:13px;
+    font-family:'Space Grotesk',sans-serif;
+    padding:9px 16px;border-radius:20px;box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    opacity:0;transform:translateY(-8px);transition:opacity 0.25s ease, transform 0.25s ease;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(10,8,6,0.6);
+    display:flex;align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .sheet{
+    background:var(--surface);width:100%;max-width:480px;
+    border-radius:18px 18px 0 0;padding:18px 20px calc(20px + env(safe-area-inset-bottom));
+    border:1px solid var(--line);border-bottom:none;
+    max-height:85vh;overflow-y:auto;
+  }
+  .sheet h2{
+    font-family:'Space Grotesk',sans-serif;font-size:17px;margin:0 0 4px;font-weight:600;
+  }
+  .sheet p.sub{color:var(--muted);font-size:13px;margin:0 0 16px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;background:var(--surface-hi);border:1px solid var(--line);color:var(--text);
+    border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;
+  }
+  .field .hint{font-size:11.5px;color:var(--muted);margin-top:5px;}
+  .type-choice{display:flex;gap:8px;}
+  .type-choice label{
+    flex:1;border:1px solid var(--line);border-radius:9px;padding:10px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;
+  }
+  .type-choice input{display:none;}
+  .type-choice input:checked + span{color:var(--text);font-weight:600;}
+  .type-choice label:has(input:checked){border-color:var(--amber);}
+  .type-static{
+    font-size:13px;color:var(--muted);background:var(--surface-hi);border:1px solid var(--line);
+    border-radius:9px;padding:10px 12px;
+  }
+  .sheet-actions{display:flex;gap:10px;margin-top:6px;}
+  .sheet-actions .btn.confirm{background:var(--amber);border-color:var(--amber);color:#221204;font-weight:600;}
+  .sheet-actions .btn.danger{background:transparent;border-color:var(--danger);color:var(--danger);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>Streak</h1>
+      <span id="dateLabel"></span>
+    </header>
+    <div class="stat-bar" id="statBar"></div>
+    <div id="list"></div>
+  </div>
+  <button class="fab" id="addFab" aria-label="Add subject">+</button>
+  <div id="modalRoot"></div>
+  <div class="toast-root" id="toastRoot"></div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'subjects';
+  const ROLLING_DAYS = 60; // quantity shading is relative to the max value in this window, not all-time
+  let subjects = [];
+  const expandedIds = new Set();
+  let revealedCardId = null;
+  let justSwiped = false;
+  let seenFireTip = false; // has the user ever seen the "how fires work" tip
+
+  function pad(n){return n<10?'0'+n:''+n;}
+  function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+  function todayDate(){const d=new Date();d.setHours(0,0,0,0);return d;}
+  const TODAY = todayDate();
+  const TODAY_STR = fmt(TODAY);
+
+  function uid(){return 'id'+Math.random().toString(36).slice(2,10);}
+
+  // active = counts toward the streak. For quantity subjects with a goal set,
+  // the day only counts once the logged value reaches the goal.
+  function isActive(s, ds){
+    if(s.fireFilled.includes(ds)) return true;
+    const v = s.entries[ds];
+    if(v === undefined || v === null) return false;
+    if(s.type === 'quantity' && s.goal){
+      return v >= s.goal;
+    }
+    return v > 0;
+  }
+
+  function computeStreak(s){
+    let d = new Date(TODAY);
+    if(!isActive(s, fmt(d))){
+      d.setDate(d.getDate()-1);
+      if(!isActive(s, fmt(d))) return 0;
+    }
+    let streak = 0;
+    while(isActive(s, fmt(d))){
+      streak++;
+      d.setDate(d.getDate()-1);
+    }
+    return streak;
+  }
+
+  // returns { streak, gained } and updates fires + best-ever streak in place
+  function updateFires(s){
+    const streak = computeStreak(s);
+    if(streak > (s.longestStreak||0)) s.longestStreak = streak;
+    const milestone = Math.floor(streak/5)*5;
+    let gained = 0;
+    if(milestone > s.lastMilestone){
+      const before = s.fires;
+      s.fires = Math.min(3, s.fires + (milestone - s.lastMilestone)/5);
+      gained = s.fires - before;
+      s.lastMilestone = milestone;
+    } else if(milestone < s.lastMilestone){
+      s.lastMilestone = milestone;
+    }
+    return { streak, gained };
+  }
+
+  // max value logged within the last ROLLING_DAYS days, used to scale quantity shading
+  function rollingMax(s){
+    const cutoff = new Date(TODAY);
+    cutoff.setDate(cutoff.getDate() - (ROLLING_DAYS - 1));
+    const cutoffStr = fmt(cutoff);
+    let max = 1;
+    Object.keys(s.entries).forEach(ds=>{
+      if(ds >= cutoffStr && s.entries[ds] > max) max = s.entries[ds];
+    });
+    return max;
+  }
+
+  async function load(){
+    try{
+      const res = await window.storage.get(STORAGE_KEY, false);
+      subjects = res ? JSON.parse(res.value) : [];
+      subjects.forEach(s=>{
+        if(s.longestStreak === undefined) s.longestStreak = 0;
+        if(s.goal === undefined) s.goal = null;
+      });
+    }catch(e){
+      subjects = [];
+    }
+    try{
+      const tip = await window.storage.get('seenFireTip', false);
+      seenFireTip = !!(tip && tip.value === 'true');
+    }catch(e){
+      seenFireTip = false;
+    }
+    let seenWelcome = false;
+    try{
+      const w = await window.storage.get('seenWelcome', false);
+      seenWelcome = !!(w && w.value === 'true');
+    }catch(e){
+      seenWelcome = false;
+    }
+    render();
+    if(!seenWelcome && subjects.length === 0){
+      window.storage.set('seenWelcome', 'true', false).catch(()=>{});
+      showWelcome();
+    }
+  }
+  async function save(){
+    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(subjects), false); }
+    catch(e){ console.error('storage save failed', e); }
+  }
+  async function saveFireTipSeen(){
+    try{ await window.storage.set('seenFireTip', 'true', false); }
+    catch(e){ console.error('storage save failed', e); }
+  }
+
+  function showWelcome(){
+    openSheet(`
+      <h2>Welcome to Streak 👋</h2>
+      <p class="sub">A simple way to keep a daily habit going.</p>
+      <div class="field">
+        <label>1. Add a subject</label>
+        <div class="hint" style="margin-top:0;">Anything you want to do daily — a simple check-off, or something you measure like hours or steps.</div>
+      </div>
+      <div class="field">
+        <label>2. Tap it once a day</label>
+        <div class="hint" style="margin-top:0;">Each day fills a square in its grid, like a habit calendar.</div>
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label>3. Don't break the chain</label>
+        <div class="hint" style="margin-top:0;">Every 5-day streak banks a fire (up to 3) — spend one to cover a day you miss, so a slip doesn't cost you the whole streak.</div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn" id="skipWelcome">Maybe later</button>
+        <button class="btn confirm" id="startWelcome">Add my first subject</button>
+      </div>
+    `);
+    document.getElementById('skipWelcome').addEventListener('click', closeModal);
+    document.getElementById('startWelcome').addEventListener('click', ()=>{
+      closeModal();
+      openAddSubjectSheet();
+    });
+  }
+
+  // ---------- toast ----------
+  let toastQueue = [];
+  let toastBusy = false;
+  function showToast(msg){
+    toastQueue.push(msg);
+    processToastQueue();
+  }
+  function processToastQueue(){
+    if(toastBusy || toastQueue.length === 0) return;
+    toastBusy = true;
+    const msg = toastQueue.shift();
+    const root = document.getElementById('toastRoot');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    root.appendChild(el);
+    requestAnimationFrame(()=> el.classList.add('show'));
+    setTimeout(()=>{
+      el.classList.remove('show');
+      setTimeout(()=>{
+        el.remove();
+        toastBusy = false;
+        processToastQueue();
+      }, 250);
+    }, 1900);
+  }
+
+  function pulseCell(subjId, ds){
+    requestAnimationFrame(()=>{
+      const el = document.querySelector(`.cell[data-subj="${subjId}"][data-date="${ds}"]`);
+      if(el){
+        el.classList.add('pulse');
+        el.addEventListener('animationend', ()=> el.classList.remove('pulse'), {once:true});
+      }
+    });
+  }
+
+  // ---------- grid rendering ----------
+  const WEEKS = 20;
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const WEEKDAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  function buildGridDates(){
+    const end = new Date(TODAY);
+    const endDow = end.getDay();
+    end.setDate(end.getDate() + (6-endDow));
+    const start = new Date(end);
+    start.setDate(start.getDate() - (WEEKS*7 - 1));
+    const days = [];
+    let cur = new Date(start);
+    while(cur <= end){
+      days.push(new Date(cur));
+      cur.setDate(cur.getDate()+1);
+    }
+    return days;
+  }
+  const GRID_DAYS = buildGridDates();
+
+  function intensityLevel(s, ds, maxVal){
+    if(s.fireFilled.includes(ds)) return 'fire';
+    const v = s.entries[ds];
+    if(!v || v<=0) return 0;
+    if(s.type === 'check') return 4;
+    const ratio = v / maxVal;
+    if(ratio > 0.75) return 4;
+    if(ratio > 0.5) return 3;
+    if(ratio > 0.25) return 2;
+    return 1;
+  }
+
+  function cellColor(s, level){
+    if(level === 0) return 'var(--surface-hi)';
+    const base = s.type === 'check' ? [74,47,24] : [31,59,56];
+    const top = s.type === 'check' ? [255,138,61] : [79,184,174];
+    const t = level/4;
+    const r = Math.round(base[0] + (top[0]-base[0])*t);
+    const g = Math.round(base[1] + (top[1]-base[1])*t);
+    const b = Math.round(base[2] + (top[2]-base[2])*t);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function dayCellHtml(s, d, maxVal, sizeClass){
+    const ds = fmt(d);
+    if(d > TODAY){
+      return `<div class="cell future ${sizeClass||''}"></div>`;
+    }
+    const lvl = intensityLevel(s, ds, maxVal);
+    const isToday = ds === TODAY_STR ? ' today-ring' : '';
+    if(lvl === 'fire'){
+      return `<div class="cell fire-cell${isToday} ${sizeClass||''}" data-subj="${s.id}" data-date="${ds}" title="${ds} · streak saved with a fire"></div>`;
+    }
+    const bg = cellColor(s, lvl);
+    return `<div class="cell${isToday} ${sizeClass||''}" style="background:${bg}" data-subj="${s.id}" data-date="${ds}" title="${ds}"></div>`;
+  }
+
+  function renderMiniGrid(s, maxVal){
+    const last7 = [];
+    for(let i=6;i>=0;i--){
+      const d = new Date(TODAY);
+      d.setDate(d.getDate()-i);
+      last7.push(d);
+    }
+    const cells = last7.map(d=>dayCellHtml(s, d, maxVal)).join('');
+    return `<div class="mini-row">${cells}</div>
+      <button class="grid-toggle" data-action="toggleGrid" data-subj="${s.id}">Full history ▸</button>`;
+  }
+
+  function renderFullGrid(s, maxVal){
+    const weeks = [];
+    for(let w=0; w<WEEKS; w++){
+      weeks.push(GRID_DAYS.slice(w*7, w*7+7));
+    }
+    let monthsHtml = '';
+    let lastMonth = -1;
+    weeks.forEach(week=>{
+      const firstOfMonth = week.find(d=>d.getDate()===1) || week[0];
+      const m = firstOfMonth.getMonth();
+      if(week[0].getDate() <= 7 && m !== lastMonth){
+        monthsHtml += `<span class="month-lbl" style="width:11px;">${MONTH_NAMES[m]}</span>`;
+        lastMonth = m;
+      } else {
+        monthsHtml += `<span class="month-lbl" style="width:11px;"></span>`;
+      }
+    });
+
+    let weekdayHtml = '';
+    for(let i=0;i<7;i++){
+      weekdayHtml += `<span class="weekday-lbl">${(i===1||i===3||i===5) ? WEEKDAY_SHORT[i] : ''}</span>`;
+    }
+
+    let weeksHtml = '';
+    weeks.forEach(week=>{
+      let colHtml = '<div class="week-col">';
+      week.forEach(d=> colHtml += dayCellHtml(s, d, maxVal));
+      colHtml += '</div>';
+      weeksHtml += colHtml;
+    });
+
+    return `<div class="grid-scroll" data-scrollhost="${s.id}">
+      <div class="grid-inner">
+        <div class="weekday-col">${weekdayHtml}</div>
+        <div>
+          <div class="months-row">${monthsHtml}</div>
+          <div class="weeks">${weeksHtml}</div>
+        </div>
+      </div>
+    </div>
+    <button class="grid-toggle grid-toggle-full" data-action="toggleGrid" data-subj="${s.id}">Show less ▴</button>`;
+  }
+
+  // ---------- main render ----------
+  function render(){
+    document.getElementById('dateLabel').textContent = new Date().toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+    const list = document.getElementById('list');
+    const statBar = document.getElementById('statBar');
+
+    if(subjects.length === 0){
+      statBar.style.display = 'none';
+      list.innerHTML = `<div class="empty"><span class="icon">🔥</span><b>Nothing tracked yet</b>Tap + to add a subject — something you check off,<br>or something you measure in hours, reps or steps.</div>`;
+      return;
+    }
+    statBar.style.display = 'flex';
+
+    let html = '';
+    let totalFires = 0, activeStreaks = 0, bestEver = 0;
+    let toastMsgs = [];
+    let showOnboarding = false;
+
+    subjects.forEach((s, idx)=>{
+      const { streak, gained } = updateFires(s);
+      if(gained > 0){
+        if(!seenFireTip && !showOnboarding){
+          showOnboarding = true;
+          seenFireTip = true;
+        } else {
+          toastMsgs.push(`🔥 Fire earned for ${s.name}!`);
+        }
+      }
+      totalFires += s.fires;
+      if(streak > 0) activeStreaks++;
+      if(s.longestStreak > bestEver) bestEver = s.longestStreak;
+
+      const goalTxt = (s.type === 'quantity' && s.goal) ? ` · goal ${s.goal}${s.unit?(' '+s.unit):''}` : '';
+      const typeLbl = s.type === 'check' ? 'daily check' : ('logged in ' + (s.unit || 'units'));
+      const todayVal = s.entries[TODAY_STR];
+      const doneToday = todayVal !== undefined && todayVal > 0;
+      let fireIcons = '';
+      for(let i=0;i<3;i++){
+        fireIcons += `<span class="fire-icon${i < s.fires ? ' on' : ''}">🔥</span>`;
+      }
+      let quickBtn;
+      if(s.type === 'check'){
+        quickBtn = `<button class="btn primary check${doneToday?' done':''}" data-action="quickcheck" data-subj="${s.id}">
+          ${doneToday ? '✓ Done today' : 'Mark today done'}</button>`;
+      } else {
+        quickBtn = `<button class="btn primary quantity" data-action="quicklog" data-subj="${s.id}">
+          ${doneToday ? ('Today: '+todayVal+' '+(s.unit||'')) : ("Log today's "+(s.unit||'value'))}</button>`;
+      }
+
+      const maxVal = s.type === 'quantity' ? rollingMax(s) : 1;
+      const isExpanded = expandedIds.has(s.id);
+      const gridHtml = isExpanded ? renderFullGrid(s, maxVal) : renderMiniGrid(s, maxVal);
+      const revealClass = revealedCardId === s.id ? ' style="transform:translateX(-88px);"' : '';
+
+      html += `<div class="card-wrap">
+        <div class="swipe-delete-bg" data-action="swipeDelete" data-subj="${s.id}">Delete</div>
+        <div class="card" data-subj="${s.id}"${revealClass}>
+          <div class="card-top">
+            <div class="name-row">
+              <span class="type-dot ${s.type}"></span>
+              <span class="subj-name">${escapeHtml(s.name)}</span>
+            </div>
+            <div class="fires">${fireIcons}</div>
+          </div>
+          <div class="meta-row">
+            <span class="streak-num">${streak}</span>
+            <span>day streak</span>
+            <span class="best-badge">· best <b>${s.longestStreak||0}</b></span>
+            <span>· ${typeLbl}${goalTxt}</span>
+          </div>
+          ${gridHtml}
+          <div class="quick-row">${quickBtn}</div>
+        </div>
+      </div>`;
+    });
+    list.innerHTML = html;
+
+    statBar.innerHTML = `<span><b>${totalFires}</b> fires banked</span><span><b>${activeStreaks}</b>/${subjects.length} streaks active</span><span><b>${bestEver}</b> best ever</span>`;
+
+    document.querySelectorAll('.grid-scroll').forEach(el=>{ el.scrollLeft = el.scrollWidth; });
+
+    toastMsgs.forEach(showToast);
+
+    if(showOnboarding){
+      showFireOnboarding();
+      saveFireTipSeen();
+    }
+
+    save();
+  }
+
+  function showFireOnboarding(){
+    openSheet(`
+      <h2>🔥 You just earned a fire!</h2>
+      <p class="sub">Every 5-day streak banks one fire, up to 3 at a time. If you ever miss a day, tap that empty day in the grid and spend a fire to keep your streak alive instead of breaking it.</p>
+      <div class="sheet-actions">
+        <button class="btn confirm" id="gotItFire">Got it</button>
+      </div>
+    `);
+    document.getElementById('gotItFire').addEventListener('click', closeModal);
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+  }
+
+  // ---------- modal helpers ----------
+  const modalRoot = document.getElementById('modalRoot');
+  function closeModal(){ modalRoot.innerHTML = ''; }
+  function openSheet(html){
+    modalRoot.innerHTML = `<div class="overlay" id="overlayBg"><div class="sheet">${html}</div></div>`;
+    document.getElementById('overlayBg').addEventListener('click', (e)=>{
+      if(e.target.id === 'overlayBg') closeModal();
+    });
+  }
+
+  // ---------- add subject ----------
+  function openAddSubjectSheet(){
+    openSheet(`
+      <h2>Add a subject</h2>
+      <p class="sub">Something you'll track every day.</p>
+      <div class="field">
+        <label>Name</label>
+        <input id="newName" type="text" placeholder="e.g. Guitar practice" maxlength="40">
+      </div>
+      <div class="field">
+        <label>How do you track it?</label>
+        <div class="type-choice">
+          <label><input type="radio" name="newType" value="check" checked><span>✓ Simple check-off</span></label>
+          <label><input type="radio" name="newType" value="quantity"><span># Hours / steps / count</span></label>
+        </div>
+      </div>
+      <div class="field" id="unitField" style="display:none;">
+        <label>Unit label</label>
+        <input id="newUnit" type="text" placeholder="e.g. hrs, steps, pages" maxlength="12">
+      </div>
+      <div class="field" id="goalField" style="display:none;">
+        <label>Daily goal (optional)</label>
+        <input id="newGoal" type="number" min="0" step="any" placeholder="No goal — any value counts">
+        <div class="hint">If set, a day only counts toward your streak once you hit this number.</div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn" id="cancelAdd">Cancel</button>
+        <button class="btn confirm" id="confirmAdd">Add subject</button>
+      </div>
+    `);
+    modalRoot.querySelectorAll('input[name="newType"]').forEach(r=>{
+      r.addEventListener('change', ()=>{
+        const isQty = r.value==='quantity' && r.checked;
+        document.getElementById('unitField').style.display = isQty ? 'block':'none';
+        document.getElementById('goalField').style.display = isQty ? 'block':'none';
+      });
+    });
+    document.getElementById('cancelAdd').addEventListener('click', closeModal);
+    document.getElementById('confirmAdd').addEventListener('click', ()=>{
+      const name = document.getElementById('newName').value.trim();
+      if(!name) return;
+      const type = modalRoot.querySelector('input[name="newType"]:checked').value;
+      const unit = type==='quantity' ? (document.getElementById('newUnit').value.trim() || 'units') : '';
+      const goalRaw = type==='quantity' ? parseFloat(document.getElementById('newGoal').value) : NaN;
+      const goal = (type==='quantity' && !isNaN(goalRaw) && goalRaw > 0) ? goalRaw : null;
+      subjects.push({
+        id: uid(), name, type, unit, goal,
+        entries: {}, fireFilled: [], fires: 0, lastMilestone: 0, longestStreak: 0,
+        createdAt: TODAY_STR
+      });
+      closeModal();
+      render();
+    });
+  }
+  document.getElementById('addFab').addEventListener('click', openAddSubjectSheet);
+
+  // ---------- delegated clicks on list ----------
+  document.getElementById('list').addEventListener('click', (e)=>{
+    if(justSwiped){ justSwiped = false; return; }
+
+    const swipeDel = e.target.closest('[data-action="swipeDelete"]');
+    if(swipeDel) return confirmDeleteSubject(swipeDel.dataset.subj);
+
+    const toggle = e.target.closest('[data-action="toggleGrid"]');
+    if(toggle){
+      const id = toggle.dataset.subj;
+      if(expandedIds.has(id)) expandedIds.delete(id); else expandedIds.add(id);
+      return render();
+    }
+
+    const cell = e.target.closest('.cell');
+    if(cell && !cell.classList.contains('future')){
+      return handleCellTap(cell.dataset.subj, cell.dataset.date, cell.classList.contains('fire-cell'));
+    }
+    const quickCheck = e.target.closest('[data-action="quickcheck"]');
+    if(quickCheck) return toggleQuickCheck(quickCheck.dataset.subj);
+    const quickLog = e.target.closest('[data-action="quicklog"]');
+    if(quickLog) return openLogSheet(quickLog.dataset.subj, TODAY_STR);
+  });
+
+  // ---------- swipe-to-delete + long-press for card details ----------
+  let drag = null;
+  let longPressTimer = null;
+
+  document.getElementById('list').addEventListener('pointerdown', (e)=>{
+    const cardWrap = e.target.closest('.card-wrap');
+    if(!cardWrap) return;
+    const insideGrid = e.target.closest('.grid-scroll');
+    const id = cardWrap.querySelector('.card').dataset.subj;
+
+    if(revealedCardId && revealedCardId !== id){
+      revealedCardId = null;
+      render();
+    }
+
+    if(!insideGrid){
+      drag = { id, startX: e.clientX, startY: e.clientY, dragging: false, cardWrap };
+    }
+
+    const isHeader = e.target.closest('.card-top');
+    if(isHeader){
+      clearTimeout(longPressTimer);
+      longPressTimer = setTimeout(()=>{
+        longPressTimer = null;
+        drag = null;
+        openSubjectMenu(id);
+      }, 500);
+    }
+  });
+
+  document.getElementById('list').addEventListener('pointermove', (e)=>{
+    if(!drag) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    if(!drag.dragging){
+      if(Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)){
+        drag.dragging = true;
+        clearTimeout(longPressTimer);
+      } else if(Math.abs(dy) > 10){
+        drag = null;
+        return;
+      } else {
+        return;
+      }
+    }
+    const card = drag.cardWrap.querySelector('.card');
+    const clamped = Math.max(-96, Math.min(0, dx));
+    card.style.transition = 'none';
+    card.style.transform = `translateX(${clamped}px)`;
+  });
+
+  function endDrag(){
+    if(!drag) { clearTimeout(longPressTimer); return; }
+    clearTimeout(longPressTimer);
+    if(drag.dragging){
+      justSwiped = true;
+      const card = drag.cardWrap.querySelector('.card');
+      card.style.transition = '';
+      const dx = parseFloat(card.style.transform.replace(/[^-\d.]/g,'')) || 0;
+      if(dx < -44){
+        revealedCardId = drag.id;
+        card.style.transform = 'translateX(-88px)';
+      } else {
+        revealedCardId = null;
+        card.style.transform = 'translateX(0)';
+      }
+      setTimeout(()=>{ justSwiped = false; }, 50);
+    }
+    drag = null;
+  }
+  document.getElementById('list').addEventListener('pointerup', endDrag);
+  document.getElementById('list').addEventListener('pointercancel', endDrag);
+
+  function getSubj(id){ return subjects.find(s=>s.id===id); }
+  function getSubjIndex(id){ return subjects.findIndex(s=>s.id===id); }
+
+  function moveSubject(id, dir){
+    const idx = getSubjIndex(id);
+    const newIdx = idx + dir;
+    if(idx === -1 || newIdx < 0 || newIdx >= subjects.length) return;
+    const tmp = subjects[idx];
+    subjects[idx] = subjects[newIdx];
+    subjects[newIdx] = tmp;
+    render();
+  }
+
+  function toggleQuickCheck(id){
+    const s = getSubj(id);
+    if(!s) return;
+    const has = s.entries[TODAY_STR] !== undefined && s.entries[TODAY_STR] > 0;
+    if(has){ delete s.entries[TODAY_STR]; }
+    else { s.entries[TODAY_STR] = 1; }
+    render();
+    if(!has) pulseCell(id, TODAY_STR);
+  }
+
+  function handleCellTap(subjId, ds, isFireCell){
+    const s = getSubj(subjId);
+    if(!s) return;
+    if(isFireCell){
+      openSheet(`
+        <h2>Saved with a fire</h2>
+        <p class="sub">${ds} was covered using one of your fires to keep the streak alive. No real entry was logged.</p>
+        <div class="sheet-actions">
+          <button class="btn" id="closeInfo">Close</button>
+        </div>`);
+      document.getElementById('closeInfo').addEventListener('click', closeModal);
+      return;
+    }
+    const active = isActive(s, ds);
+    if(active){
+      return openLogSheet(subjId, ds);
+    }
+    const isPast = ds < TODAY_STR;
+    let fireBtn = '';
+    if(isPast && s.fires > 0){
+      fireBtn = `<button class="btn" id="useFire" style="border-color:var(--amber);color:var(--amber-glow);">🔥 Use a fire to save this day</button>`;
+    } else if(isPast){
+      fireBtn = `<p class="sub" style="margin-top:-6px;">No fires available for ${ds}.</p>`;
+    }
+    openSheet(`
+      <h2>${ds}${ds===TODAY_STR ? ' · Today' : ''}</h2>
+      <p class="sub">${s.type==='check' ? 'Mark this day as done, or leave it blank.' : (s.goal ? `Log a value for this day. Goal: ${s.goal} ${s.unit||''}.` : 'Log a value for this day.')}</p>
+      ${s.type==='quantity' ? `<div class="field"><label>${s.unit||'Value'}</label><input id="valInput" type="number" min="0" step="any" placeholder="0"></div>` : ''}
+      <div class="sheet-actions">
+        <button class="btn" id="cancelLog">Cancel</button>
+        <button class="btn confirm" id="saveLog">${s.type==='check' ? 'Mark done' : 'Save'}</button>
+      </div>
+      ${fireBtn ? `<div class="sheet-actions" style="margin-top:8px;">${fireBtn}</div>` : ''}
+    `);
+    document.getElementById('cancelLog').addEventListener('click', closeModal);
+    document.getElementById('saveLog').addEventListener('click', ()=>{
+      if(s.type === 'check'){ s.entries[ds] = 1; }
+      else {
+        const v = parseFloat(document.getElementById('valInput').value);
+        if(!v || v<=0) return;
+        s.entries[ds] = v;
+      }
+      closeModal();
+      render();
+      pulseCell(subjId, ds);
+    });
+    const fireEl = document.getElementById('useFire');
+    if(fireEl){
+      fireEl.addEventListener('click', ()=>{
+        if(s.fires <= 0) return;
+        s.fireFilled.push(ds);
+        s.fires -= 1;
+        closeModal();
+        render();
+        pulseCell(subjId, ds);
+      });
+    }
+  }
+
+  function openLogSheet(subjId, ds){
+    const s = getSubj(subjId);
+    if(!s) return;
+    const current = s.entries[ds];
+    openSheet(`
+      <h2>${ds}${ds===TODAY_STR ? ' · Today' : ''}</h2>
+      <p class="sub">${s.type==='check' ? 'This day is marked done.' : 'Edit the logged value for this day.'}</p>
+      ${s.type==='quantity' ? `<div class="field"><label>${s.unit||'Value'}</label><input id="valInput" type="number" min="0" step="any" value="${current||''}"></div>` : ''}
+      <div class="sheet-actions">
+        <button class="btn danger" id="clearEntry">${s.type==='check' ? 'Unmark' : 'Clear'}</button>
+        ${s.type==='quantity' ? `<button class="btn confirm" id="saveEdit">Save</button>` : ''}
+      </div>
+    `);
+    document.getElementById('clearEntry').addEventListener('click', ()=>{
+      delete s.entries[ds];
+      closeModal();
+      render();
+    });
+    const saveEdit = document.getElementById('saveEdit');
+    if(saveEdit){
+      saveEdit.addEventListener('click', ()=>{
+        const v = parseFloat(document.getElementById('valInput').value);
+        if(!v || v<=0){ delete s.entries[ds]; } else { s.entries[ds] = v; }
+        closeModal();
+        render();
+      });
+    }
+  }
+
+  // ---------- subject menu (long-press): edit, reorder, delete ----------
+  function openSubjectMenu(subjId){
+    const s = getSubj(subjId);
+    if(!s) return;
+    const idx = getSubjIndex(subjId);
+    openSheet(`
+      <h2>${escapeHtml(s.name)}</h2>
+      <p class="sub">${s.fires} of 3 fires · ${Object.keys(s.entries).length} days logged · best streak ${s.longestStreak||0}</p>
+      <div class="sheet-actions">
+        <button class="btn" id="editSubj">✏️ Edit</button>
+        <button class="btn" id="closeMenu">Close</button>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn" id="moveUp" ${idx<=0?'disabled':''}>▲ Move up</button>
+        <button class="btn" id="moveDown" ${idx>=subjects.length-1?'disabled':''}>▼ Move down</button>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn danger" id="deleteSubj">Delete subject</button>
+      </div>
+    `);
+    document.getElementById('closeMenu').addEventListener('click', closeModal);
+    document.getElementById('editSubj').addEventListener('click', ()=>{
+      closeModal();
+      openEditSheet(subjId);
+    });
+    document.getElementById('moveUp').addEventListener('click', ()=>{
+      closeModal();
+      moveSubject(subjId, -1);
+    });
+    document.getElementById('moveDown').addEventListener('click', ()=>{
+      closeModal();
+      moveSubject(subjId, 1);
+    });
+    document.getElementById('deleteSubj').addEventListener('click', ()=>{
+      closeModal();
+      confirmDeleteSubject(subjId);
+    });
+  }
+
+  function openEditSheet(subjId){
+    const s = getSubj(subjId);
+    if(!s) return;
+    const typeDesc = s.type==='check' ? '✓ Simple check-off' : '# Hours / steps / count';
+    openSheet(`
+      <h2>Edit subject</h2>
+      <div class="field">
+        <label>Name</label>
+        <input id="editName" type="text" maxlength="40" value="${escapeHtml(s.name)}">
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <div class="type-static">${typeDesc} — type can't be changed after creation</div>
+      </div>
+      ${s.type==='quantity' ? `
+      <div class="field">
+        <label>Unit label</label>
+        <input id="editUnit" type="text" maxlength="12" value="${escapeHtml(s.unit||'')}">
+      </div>
+      <div class="field">
+        <label>Daily goal (optional)</label>
+        <input id="editGoal" type="number" min="0" step="any" value="${s.goal||''}" placeholder="No goal — any value counts">
+        <div class="hint">If set, a day only counts toward your streak once you hit this number.</div>
+      </div>` : ''}
+      <div class="sheet-actions">
+        <button class="btn" id="cancelEdit">Cancel</button>
+        <button class="btn confirm" id="saveSubjEdit">Save changes</button>
+      </div>
+    `);
+    document.getElementById('cancelEdit').addEventListener('click', closeModal);
+    document.getElementById('saveSubjEdit').addEventListener('click', ()=>{
+      const name = document.getElementById('editName').value.trim();
+      if(name) s.name = name;
+      if(s.type === 'quantity'){
+        const unit = document.getElementById('editUnit').value.trim();
+        s.unit = unit || 'units';
+        const goalRaw = parseFloat(document.getElementById('editGoal').value);
+        s.goal = (!isNaN(goalRaw) && goalRaw > 0) ? goalRaw : null;
+      }
+      closeModal();
+      render();
+    });
+  }
+
+  function confirmDeleteSubject(subjId){
+    const s = getSubj(subjId);
+    if(!s) return;
+    openSheet(`
+      <h2>Delete ${escapeHtml(s.name)}?</h2>
+      <p class="sub">This removes all its history. This can't be undone.</p>
+      <div class="sheet-actions">
+        <button class="btn" id="cancelDel">Cancel</button>
+        <button class="btn danger" id="confirmDel">Delete</button>
+      </div>
+    `);
+    document.getElementById('cancelDel').addEventListener('click', ()=>{
+      revealedCardId = null;
+      closeModal();
+      render();
+    });
+    document.getElementById('confirmDel').addEventListener('click', ()=>{
+      subjects = subjects.filter(x=>x.id!==subjId);
+      revealedCardId = null;
+      closeModal();
+      render();
+    });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
