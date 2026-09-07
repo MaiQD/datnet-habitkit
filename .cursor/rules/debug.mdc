@@ -1,4 +1,0 @@
----
-alwaysApply: true
----
-Never keep dotnet run running in the background. Always kill it after you are done with the conversation.
