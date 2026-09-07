@@ -1,0 +1,37 @@
+# Shared reverse-proxy stack (ADR-0010). Deployed once, separately from any
+# individual app. This is the ONLY compose stack on the VPS that maps ports
+# 80/443 to the host — every app behind it joins the external "web" network
+# and is reached only through Caddy.
+#
+# One-time setup on the VPS:
+#   docker network create web
+#   mkdir -p /opt/proxy/data /opt/proxy/config
+#   # place Caddyfile at /opt/proxy/Caddyfile
+#   cd /opt/proxy && docker compose up -d
+#
+# After that, this stack is rarely touched — only when adding a new app's
+# domain block to the Caddyfile, or reloading config:
+#   docker exec proxy caddy reload --config /etc/caddy/Caddyfile
+
+services:
+  proxy:
+    image: caddy:2-alpine
+    container_name: proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # certificates persist here across restarts/redeploys
+      - caddy_config:/config
+    networks:
+      - web
+
+networks:
+  web:
+    external: true # created once via `docker network create web`
+
+volumes:
+  caddy_data:
+  caddy_config:

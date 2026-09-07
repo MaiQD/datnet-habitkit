@@ -1,0 +1,3 @@
+@Streak.Api_HostAddress = http://localhost:5086
+
+GET {{Streak.Api_HostAddress}}/

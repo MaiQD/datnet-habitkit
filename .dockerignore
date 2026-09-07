@@ -1,0 +1,12 @@
+**/.git
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.vs
+**/.DS_Store
+docs
+.env
+*.db
+*.db-shm
+*.db-wal

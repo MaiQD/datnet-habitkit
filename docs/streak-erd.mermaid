@@ -1,0 +1,121 @@
+erDiagram
+    AspNetUsers ||--o{ AspNetUserClaims : has
+    AspNetUsers ||--o{ AspNetUserLogins : has
+    AspNetUsers ||--o{ AspNetUserTokens : has
+    AspNetUsers ||--o{ AspNetUserRoles : has
+    AspNetRoles ||--o{ AspNetUserRoles : has
+    AspNetRoles ||--o{ AspNetRoleClaims : has
+    AspNetUsers ||--o{ Subjects : owns
+    Subjects ||--o{ Entries : has
+    AspNetUsers ||--o{ PushSubscriptions : registers
+    AspNetUsers ||--o{ AspNetUserPasskeys : registers
+
+    AspNetUsers {
+        string Id PK
+        string UserName
+        string NormalizedUserName
+        string Email
+        string NormalizedEmail
+        bool EmailConfirmed
+        string PasswordHash
+        string SecurityStamp
+        string ConcurrencyStamp
+        string PhoneNumber
+        bool PhoneNumberConfirmed
+        bool TwoFactorEnabled
+        datetime LockoutEnd
+        bool LockoutEnabled
+        int AccessFailedCount
+        string TimeZoneId "app-added"
+        bool RemindersEnabled "app-added"
+        time ReminderTime "app-added, nullable"
+        datetime CreatedAt "app-added"
+        bigint SyncVersion "app-added, default 0"
+    }
+
+    AspNetRoles {
+        string Id PK
+        string Name
+        string NormalizedName
+        string ConcurrencyStamp
+    }
+
+    AspNetRoleClaims {
+        int Id PK
+        string RoleId FK
+        string ClaimType
+        string ClaimValue
+    }
+
+    AspNetUserRoles {
+        string UserId PK_FK
+        string RoleId PK_FK
+    }
+
+    AspNetUserClaims {
+        int Id PK
+        string UserId FK
+        string ClaimType
+        string ClaimValue
+    }
+
+    AspNetUserLogins {
+        string LoginProvider PK
+        string ProviderKey PK
+        string ProviderDisplayName
+        string UserId FK
+    }
+
+    AspNetUserTokens {
+        string UserId PK_FK
+        string LoginProvider PK
+        string Name PK
+        string Value
+    }
+
+    Subjects {
+        guid Id PK
+        string UserId FK
+        string Name
+        tinyint Type "0=Check, 1=Quantity"
+        string Unit "nullable"
+        decimal Goal "nullable"
+        int SortOrder
+        tinyint Fires "0-3"
+        int LastMilestone
+        int LongestStreak
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    Entries {
+        guid Id PK
+        guid SubjectId FK
+        date Date
+        decimal Value "nullable"
+        bool IsFireFilled
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    PushSubscriptions {
+        guid Id PK
+        string UserId FK
+        string Endpoint UK
+        string P256dh
+        string Auth
+        string DeviceLabel "nullable"
+        datetime CreatedAt
+        datetime LastSeenAt
+    }
+
+    AspNetUserPasskeys {
+        string UserId PK_FK
+        binary CredentialId UK
+        binary PublicKey
+        string Name
+        int SignCount
+        bool IsBackedUp
+        bool IsUserVerified
+        datetime CreatedAt
+    }
